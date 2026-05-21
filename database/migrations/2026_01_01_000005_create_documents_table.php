@@ -6,27 +6,24 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
             $table->morphs('documentable');
-            $table->enum('type', ['bill_of_lading', 'commercial_invoice', 'packing_list', 'certificate_of_origin', 'other']);
+            $table->string('document_type');
+            // bill_of_lading, commercial_invoice, packing_list, certificate_of_origin,
+            // phytosanitary_certificate, insurance_certificate, quality_certificate, other
             $table->string('name');
-            $table->string('file_path');
-            $table->string('original_filename');
-            $table->unsignedBigInteger('file_size')->nullable();
+            $table->string('file_path')->nullable();
+            $table->integer('version')->default(1);
+            $table->string('status')->default('received'); // missing, received, under_review, approved, rejected
             $table->text('notes')->nullable();
+            $table->foreignId('uploaded_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('documents');
