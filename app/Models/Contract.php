@@ -12,11 +12,23 @@ class Contract extends Model
     use HasFactory, SoftDeletes, LogsActivity;
 
     const STATUS_LABELS = [
-        'draft'             => 'Draft',
-        'confirmed'         => 'Confirmed',
-        'partially_shipped' => 'Partially Shipped',
-        'completed'         => 'Completed',
-        'cancelled'         => 'Cancelled',
+        'draft'             => 'Bozza',
+        'confirmed'         => 'Confermato',
+        'partially_shipped' => 'Parz. Spedito',
+        'completed'         => 'Completato',
+        'cancelled'         => 'Annullato',
+    ];
+
+    const UOM_KG_FACTORS = [
+        'kg'     => 1,
+        'MT'     => 1000,
+        't'      => 1000,
+        'lb'     => 0.453592,
+        'lbs'    => 0.453592,
+        'bag25'  => 25,
+        'bag50'  => 50,
+        'bag'    => 50,
+        'sacchi' => 50,
     ];
 
     protected $fillable = [
@@ -27,8 +39,10 @@ class Contract extends Model
         'crop_season',
         'quantity_contracted',
         'unit_of_measure',
+        'kg_per_unit',
         'unit_price',
         'currency',
+        'exchange_rate_to_eur',
         'incoterm',
         'port_of_loading',
         'port_of_discharge',
@@ -49,6 +63,8 @@ class Contract extends Model
         'total_value'           => 'decimal:2',
         'unit_price'            => 'decimal:4',
         'quantity_contracted'   => 'decimal:3',
+        'kg_per_unit'           => 'decimal:4',
+        'exchange_rate_to_eur'  => 'decimal:6',
     ];
 
     public function supplier()
@@ -114,6 +130,26 @@ class Contract extends Model
     public function getRemainingQuantityAttribute(): float
     {
         return (float) $this->quantity_contracted - $this->shipped_quantity;
+    }
+
+    public function getTotalKgAttribute(): float
+    {
+        return round((float) $this->quantity_contracted * (float) $this->kg_per_unit, 2);
+    }
+
+    public function getShippedKgAttribute(): float
+    {
+        return round((float) $this->shipped_quantity * (float) $this->kg_per_unit, 2);
+    }
+
+    public function getTotalValueEurAttribute(): float
+    {
+        return round((float) $this->total_value * (float) $this->exchange_rate_to_eur, 2);
+    }
+
+    public function getUnitPriceEurAttribute(): float
+    {
+        return round((float) $this->unit_price * (float) $this->exchange_rate_to_eur, 4);
     }
 
     public function getStatusLabelAttribute(): string

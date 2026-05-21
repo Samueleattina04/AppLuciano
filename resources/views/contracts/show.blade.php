@@ -22,31 +22,45 @@
 
 <!-- KPI -->
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
+    <div class="col-md-2">
         <div class="card text-center py-3">
-            <div style="font-size:1.5rem;font-weight:700;color:#0f172a">{{ number_format($contract->total_value, 0) }}</div>
-            <div style="font-size:0.8rem;color:#64748b">{{ $contract->currency }} Valore Totale</div>
+            <div style="font-size:1.4rem;font-weight:700;color:#0f172a">{{ number_format($contract->total_value, 0) }}</div>
+            <div style="font-size:0.75rem;color:#64748b">{{ $contract->currency }} Valore</div>
+            @if($contract->exchange_rate_to_eur != 1)
+            <div style="font-size:0.8rem;color:#10b981;font-weight:600">≈ € {{ number_format($contract->total_value_eur, 0) }}</div>
+            @endif
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
         <div class="card text-center py-3">
-            <div style="font-size:1.5rem;font-weight:700;color:#10b981">{{ number_format($contract->paid_amount, 0) }}</div>
-            <div style="font-size:0.8rem;color:#64748b">{{ $contract->currency }} Pagato</div>
+            <div style="font-size:1.4rem;font-weight:700;color:#10b981">{{ number_format($contract->paid_amount, 0) }}</div>
+            <div style="font-size:0.75rem;color:#64748b">{{ $contract->currency }} Pagato</div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
         <div class="card text-center py-3">
             @php $balance = $contract->remaining_balance; @endphp
-            <div style="font-size:1.5rem;font-weight:700;color:{{ $balance > 0 ? '#f59e0b' : '#10b981' }}">{{ number_format(abs($balance), 0) }}</div>
-            <div style="font-size:0.8rem;color:#64748b">{{ $contract->currency }} Saldo Residuo</div>
+            <div style="font-size:1.4rem;font-weight:700;color:{{ $balance > 0 ? '#f59e0b' : '#10b981' }}">{{ number_format(abs($balance), 0) }}</div>
+            <div style="font-size:0.75rem;color:#64748b">{{ $contract->currency }} Residuo</div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card text-center py-3">
             @php $pct = $contract->quantity_contracted > 0 ? min(100, round(($contract->shipped_quantity / $contract->quantity_contracted) * 100)) : 0; @endphp
-            <div style="font-size:1.5rem;font-weight:700;color:#3b82f6">{{ $pct }}%</div>
+            <div style="font-size:1.4rem;font-weight:700;color:#3b82f6">{{ $pct }}%</div>
             <div class="progress mt-1 mx-3" style="height:4px"><div class="progress-bar bg-primary" style="width:{{ $pct }}%"></div></div>
-            <div style="font-size:0.8rem;color:#64748b">Quantità Spedita</div>
+            <div style="font-size:0.75rem;color:#64748b">
+                {{ number_format($contract->shipped_quantity, 0) }} / {{ number_format($contract->quantity_contracted, 0) }} {{ $contract->unit_of_measure }}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center py-3">
+            <div style="font-size:1.4rem;font-weight:700;color:#6366f1">{{ number_format($contract->total_kg, 0) }}</div>
+            <div style="font-size:0.75rem;color:#64748b">kg Totali Contratto</div>
+            @if($contract->kg_per_unit != 1)
+            <div style="font-size:0.75rem;color:#94a3b8">{{ number_format($contract->shipped_kg, 0) }} kg spediti</div>
+            @endif
         </div>
     </div>
 </div>
@@ -89,10 +103,15 @@
                     <div class="card-header">Condizioni Commerciali</div>
                     <div class="card-body">
                         <table class="table table-sm table-borderless mb-0">
-                            <tr><td class="text-muted" style="width:40%">Quantità</td><td><strong>{{ number_format($contract->quantity_contracted, 0) }} {{ $contract->unit_of_measure }}</strong></td></tr>
-                            <tr><td class="text-muted">Prezzo Unitario</td><td>{{ number_format($contract->unit_price, 4) }} {{ $contract->currency }}</td></tr>
-                            <tr><td class="text-muted">Valore Totale</td><td><strong>{{ number_format($contract->total_value, 2) }} {{ $contract->currency }}</strong></td></tr>
-                            <tr><td class="text-muted">Qtà Spedita</td><td>{{ number_format($contract->shipped_quantity, 0) }} {{ $contract->unit_of_measure }}</td></tr>
+                            <tr><td class="text-muted" style="width:40%">Quantità</td><td><strong>{{ number_format($contract->quantity_contracted, 0) }} {{ $contract->unit_of_measure }}</strong>
+                                @if($contract->kg_per_unit != 1)<span class="text-muted ms-1">({{ number_format($contract->total_kg, 0) }} kg)</span>@endif</td></tr>
+                            <tr><td class="text-muted">Prezzo Unitario</td><td>{{ number_format($contract->unit_price, 4) }} {{ $contract->currency }}
+                                @if($contract->exchange_rate_to_eur != 1)<span class="text-muted ms-1">≈ € {{ number_format($contract->unit_price_eur, 4) }}</span>@endif</td></tr>
+                            <tr><td class="text-muted">Valore Totale</td><td><strong>{{ number_format($contract->total_value, 2) }} {{ $contract->currency }}</strong>
+                                @if($contract->exchange_rate_to_eur != 1)<span class="text-success ms-1">≈ € {{ number_format($contract->total_value_eur, 2) }}</span>@endif</td></tr>
+                            <tr><td class="text-muted">Cambio → EUR</td><td>1 {{ $contract->currency }} = € {{ $contract->exchange_rate_to_eur }}</td></tr>
+                            <tr><td class="text-muted">Qtà Spedita</td><td>{{ number_format($contract->shipped_quantity, 0) }} {{ $contract->unit_of_measure }}
+                                @if($contract->kg_per_unit != 1)<span class="text-muted ms-1">({{ number_format($contract->shipped_kg, 0) }} kg)</span>@endif</td></tr>
                             <tr><td class="text-muted">Qtà Residua</td><td>{{ number_format($contract->remaining_quantity, 0) }} {{ $contract->unit_of_measure }}</td></tr>
                             <tr><td class="text-muted">Importo Pagato</td><td>{{ number_format($contract->paid_amount, 2) }} {{ $contract->currency }}</td></tr>
                             <tr><td class="text-muted">Saldo</td><td><strong>{{ number_format($contract->remaining_balance, 2) }} {{ $contract->currency }}</strong></td></tr>

@@ -87,6 +87,13 @@ $currentOrder = \App\Models\Shipment::STATUS_ORDER[$shipment->status] ?? 0;
 <!-- TAB -->
 <ul class="nav nav-tabs mb-3">
     <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#logistics-tab">Logistica</a></li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#checklist-tab">
+            <i class="bi bi-list-check me-1"></i>Checklist Arrivo
+            @php $done = $shipment->arrivalTasks->where('completed', true)->count(); $tot = $shipment->arrivalTasks->count(); @endphp
+            <span class="badge {{ $done === $tot && $tot > 0 ? 'bg-success' : 'bg-secondary' }}">{{ $done }}/{{ $tot }}</span>
+        </a>
+    </li>
     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#docs-tab">Documenti <span class="badge bg-secondary">{{ $shipment->documents->count() }}</span></a></li>
     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#pay-tab">Pagamenti <span class="badge bg-secondary">{{ $shipment->payments->count() }}</span></a></li>
     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#claims-tab2">Reclami <span class="badge bg-secondary">{{ $shipment->claims->count() }}</span></a></li>
@@ -110,7 +117,20 @@ $currentOrder = \App\Models\Shipment::STATUS_ORDER[$shipment->status] ?? 0;
                             <tr><td class="text-muted">N° Container</td><td><code>{{ $shipment->container_number ?? '—' }}</code></td></tr>
                             <tr><td class="text-muted">N° Sigillo</td><td>{{ $shipment->seal_number ?? '—' }}</td></tr>
                             <tr><td class="text-muted">N° BL</td><td><strong>{{ $shipment->bl_number ?? '—' }}</strong></td></tr>
-                            <tr><td class="text-muted">Quantità</td><td>{{ number_format($shipment->quantity_shipped, 0) }} {{ $shipment->contract->unit_of_measure ?? '' }}</td></tr>
+                            <tr><td class="text-muted">Quantità</td><td>
+                                <strong>{{ number_format($shipment->quantity_shipped, 0) }} {{ $shipment->contract->unit_of_measure ?? '' }}</strong>
+                                @if($shipment->contract?->kg_per_unit != 1)
+                                    <span class="text-muted ms-1">({{ number_format($shipment->quantity_kg, 0) }} kg)</span>
+                                @endif
+                            </td></tr>
+                            @if($shipment->value_eur > 0)
+                            <tr><td class="text-muted">Valore Stimato</td><td>
+                                {{ number_format($shipment->quantity_shipped * ($shipment->contract->unit_price ?? 0), 0) }} {{ $shipment->contract->currency ?? '' }}
+                                @if($shipment->contract?->exchange_rate_to_eur != 1)
+                                    <span class="text-success ms-1">≈ € {{ number_format($shipment->value_eur, 0) }}</span>
+                                @endif
+                            </td></tr>
+                            @endif
                         </table>
                     </div>
                 </div>
@@ -139,6 +159,127 @@ $currentOrder = \App\Models\Shipment::STATUS_ORDER[$shipment->status] ?? 0;
                     <div class="card-body"><p class="mb-0" style="font-size:0.875rem">{{ $shipment->notes }}</p></div>
                 </div>
                 @endif
+            </div>
+        </div>
+    </div>
+
+    <!-- CHECKLIST ARRIVO -->
+    <div class="tab-pane fade" id="checklist-tab">
+        <div class="row g-3">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <span><i class="bi bi-list-check me-1"></i>Task Pre-Arrivo Container</span>
+                        @if($shipment->arrivalTasks->count() === 0)
+                        <form method="POST" action="{{ route('shipments.arrival-tasks.defaults', $shipment) }}">
+                            @csrf
+                            <button type="submit" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-magic me-1"></i>Aggiungi task predefiniti
+                            </button>
+                        </form>
+                        @else
+                        <small class="text-muted">{{ $shipment->arrivalTasks->where('completed',true)->count() }}/{{ $shipment->arrivalTasks->count() }} completati</small>
+                        @endif
+                    </div>
+                    <div class="card-body p-0">
+                        @forelse($shipment->arrivalTasks as $task)
+                        @php
+                            $daysLeft = $task->due_date ? now()->startOfDay()->diffInDays($task->due_date->startOfDay(), false) : null;
+                        @endphp
+                        <div class="d-flex align-items-start gap-3 px-3 py-2 border-bottom {{ $task->completed ? 'bg-light' : '' }}">
+                            <form method="POST" action="{{ route('shipments.arrival-tasks.toggle', [$shipment, $task]) }}" style="margin-top:2px">
+                                @csrf @method('PATCH')
+                                <button type="submit" class="btn btn-sm p-0 border-0" title="{{ $task->completed ? 'Riapri' : 'Segna completato' }}"
+                                    style="width:22px;height:22px;border-radius:50%;background:{{ $task->completed ? '#10b981' : 'transparent' }};border:2px solid {{ $task->completed ? '#10b981' : '#cbd5e1' }} !important;display:flex;align-items:center;justify-content:center">
+                                    @if($task->completed)<i class="bi bi-check text-white" style="font-size:0.7rem"></i>@endif
+                                </button>
+                            </form>
+                            <div class="flex-grow-1">
+                                <div class="{{ $task->completed ? 'text-muted text-decoration-line-through' : 'fw-semibold' }}" style="font-size:0.9rem">
+                                    {{ $task->title }}
+                                </div>
+                                @if($task->description)
+                                <div class="text-muted" style="font-size:0.8rem">{{ $task->description }}</div>
+                                @endif
+                                @if($task->completed && $task->completedBy)
+                                <div style="font-size:0.75rem;color:#10b981">
+                                    <i class="bi bi-check-circle me-1"></i>Completato da {{ $task->completedBy->name }} il {{ $task->completed_at->format('d/m/Y H:i') }}
+                                </div>
+                                @elseif($task->due_date)
+                                <div style="font-size:0.75rem;color:{{ $daysLeft < 0 ? '#dc2626' : ($daysLeft <= 3 ? '#f59e0b' : '#64748b') }}">
+                                    <i class="bi bi-calendar me-1"></i>
+                                    @if($daysLeft < 0)
+                                        <strong>In ritardo di {{ abs($daysLeft) }}g</strong> ({{ $task->due_date->format('d/m/Y') }})
+                                    @elseif($daysLeft === 0)
+                                        <strong>Scade oggi</strong>
+                                    @else
+                                        Scade {{ $task->due_date->format('d/m/Y') }} (tra {{ $daysLeft }}g)
+                                    @endif
+                                    @if($task->days_before_eta)<span class="text-muted ms-1">· {{ $task->days_before_eta }}gg prima ETA</span>@endif
+                                </div>
+                                @endif
+                            </div>
+                            <form method="POST" action="{{ route('shipments.arrival-tasks.destroy', [$shipment, $task]) }}">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-link text-danger p-0" title="Elimina">
+                                    <i class="bi bi-trash" style="font-size:0.75rem"></i>
+                                </button>
+                            </form>
+                        </div>
+                        @empty
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-list-check" style="font-size:2rem;opacity:.3"></i>
+                            <p class="mt-2 mb-0">Nessun task. Aggiungi i predefiniti o crea il tuo.</p>
+                        </div>
+                        @endforelse
+                        @if($shipment->arrivalTasks->count() > 0)
+                        <div class="p-2 text-end">
+                            <form method="POST" action="{{ route('shipments.arrival-tasks.defaults', $shipment) }}">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-magic me-1"></i>Aggiungi task predefiniti mancanti
+                                </button>
+                            </form>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">Aggiungi Task</div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ route('shipments.arrival-tasks.store', $shipment) }}">
+                            @csrf
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Attività *</label>
+                                <input type="text" name="title" class="form-control" placeholder="es. Notificare il magazzino" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Descrizione</label>
+                                <textarea name="description" class="form-control" rows="2" placeholder="Dettagli opzionali..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Giorni prima dell'ETA</label>
+                                <input type="number" name="days_before_eta" class="form-control" min="0" placeholder="es. 7"
+                                    {{ $shipment->eta ? '' : 'disabled title=ETA non impostata' }}>
+                                @if($shipment->eta)
+                                <div class="form-text">ETA: {{ $shipment->eta->format('d/m/Y') }}</div>
+                                @else
+                                <div class="form-text text-warning">Imposta prima l'ETA nella spedizione.</div>
+                                @endif
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Data Scadenza (manuale)</label>
+                                <input type="date" name="due_date" class="form-control">
+                                <div class="form-text">Lascia vuoto per calcolare da giorni prima ETA.</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-plus me-1"></i>Aggiungi Task
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Shipment;
+use App\Models\ShipmentArrivalTask;
 use App\Models\Contract;
 use App\Models\Supplier;
 use App\Models\Product;
@@ -87,6 +88,16 @@ class ShipmentController extends Controller
             $contract->update(['status' => 'partially_shipped']);
         }
 
+        // Auto-add default arrival tasks
+        foreach (ShipmentArrivalTask::defaultTasks() as $defaults) {
+            $task = new ShipmentArrivalTask($defaults);
+            $task->shipment_id = $shipment->id;
+            if ($shipment->eta && isset($defaults['days_before_eta'])) {
+                $task->due_date = $shipment->eta->subDays($defaults['days_before_eta']);
+            }
+            $task->save();
+        }
+
         return redirect()->route('shipments.show', $shipment)
             ->with('success', 'Spedizione ' . $shipment->shipment_code . ' creata con successo.');
     }
@@ -102,6 +113,7 @@ class ShipmentController extends Controller
             'payments.contract',
             'claims',
             'communicationTasks.assignedUser',
+            'arrivalTasks.completedBy',
         ]);
 
         $recentActivity = \App\Models\ActivityLog::where('subject_type', Shipment::class)

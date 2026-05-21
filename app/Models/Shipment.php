@@ -123,6 +123,24 @@ class Shipment extends Model
         return $this->hasMany(CommunicationTask::class);
     }
 
+    public function arrivalTasks()
+    {
+        return $this->hasMany(ShipmentArrivalTask::class)->orderBy('sort_order')->orderBy('days_before_eta', 'desc');
+    }
+
+    public function getQuantityKgAttribute(): float
+    {
+        $factor = $this->contract?->kg_per_unit ?? 1;
+        return round((float) $this->quantity_shipped * (float) $factor, 2);
+    }
+
+    public function getValueEurAttribute(): float
+    {
+        $rate = $this->contract?->exchange_rate_to_eur ?? 1;
+        $price = $this->contract?->unit_price ?? 0;
+        return round((float) $this->quantity_shipped * (float) $price * (float) $rate, 2);
+    }
+
     // Scopes
     public function scopeAtSea($query)
     {

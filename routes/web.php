@@ -11,6 +11,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\ShipmentArrivalTaskController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -23,6 +24,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('contracts', ContractController::class);
     Route::resource('shipments', ShipmentController::class);
     Route::post('shipments/{shipment}/status', [ShipmentController::class, 'updateStatus'])->name('shipments.update-status');
+    Route::post('shipments/{shipment}/arrival-tasks', [ShipmentArrivalTaskController::class, 'store'])->name('shipments.arrival-tasks.store');
+    Route::post('shipments/{shipment}/arrival-tasks/defaults', [ShipmentArrivalTaskController::class, 'addDefaults'])->name('shipments.arrival-tasks.defaults');
+    Route::patch('shipments/{shipment}/arrival-tasks/{task}/toggle', [ShipmentArrivalTaskController::class, 'toggle'])->name('shipments.arrival-tasks.toggle');
+    Route::delete('shipments/{shipment}/arrival-tasks/{task}', [ShipmentArrivalTaskController::class, 'destroy'])->name('shipments.arrival-tasks.destroy');
 
     Route::resource('payments', PaymentController::class);
     Route::post('payments/{payment}/mark-paid', [PaymentController::class, 'markPaid'])->name('payments.mark-paid');

@@ -64,27 +64,47 @@
                     <div class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">Quantità *</label>
-                            <input type="number" name="quantity_contracted" step="0.001" class="form-control" value="{{ old('quantity_contracted', $contract->quantity_contracted) }}" required>
+                            <input type="number" id="qty" name="quantity_contracted" step="0.001" class="form-control"
+                                value="{{ old('quantity_contracted', $contract->quantity_contracted) }}" required>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label fw-semibold">Unità</label>
-                            <input type="text" name="unit_of_measure" class="form-control" value="{{ old('unit_of_measure', $contract->unit_of_measure) }}">
+                            <select id="uom" name="unit_of_measure" class="form-select">
+                                @foreach(['kg','MT','t','lb','lbs','bag50','bag25','sacchi'] as $u)
+                                    <option value="{{ $u }}" {{ old('unit_of_measure', $contract->unit_of_measure) == $u ? 'selected' : '' }}>{{ $u }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">kg / Unità</label>
+                            <input type="number" id="kg_per_unit" name="kg_per_unit" step="0.0001" class="form-control"
+                                value="{{ old('kg_per_unit', $contract->kg_per_unit) }}" required>
+                            <div class="form-text" id="qty_kg_preview"></div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">Prezzo Unitario *</label>
-                            <input type="number" name="unit_price" step="0.0001" class="form-control" value="{{ old('unit_price', $contract->unit_price) }}" required>
+                            <input type="number" id="unit_price" name="unit_price" step="0.0001" class="form-control"
+                                value="{{ old('unit_price', $contract->unit_price) }}" required>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label fw-semibold">Valuta</label>
-                            <select name="currency" class="form-select">
-                                @foreach(['USD', 'EUR', 'GBP'] as $c)
+                            <select id="currency" name="currency" class="form-select">
+                                @foreach(['USD','EUR','GBP','CNY'] as $c)
                                     <option value="{{ $c }}" {{ old('currency', $contract->currency) == $c ? 'selected' : '' }}>{{ $c }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label fw-semibold">Valore Totale *</label>
-                            <input type="number" name="total_value" step="0.01" class="form-control" value="{{ old('total_value', $contract->total_value) }}" required>
+                            <label class="form-label fw-semibold">Cambio → EUR</label>
+                            <input type="number" id="exchange_rate" name="exchange_rate_to_eur" step="0.000001" class="form-control"
+                                value="{{ old('exchange_rate_to_eur', $contract->exchange_rate_to_eur) }}" required>
+                            <div class="form-text" id="eur_preview"></div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Valore Totale * <span class="text-muted">(valuta originale)</span></label>
+                            <input type="number" id="total_value" name="total_value" step="0.01" class="form-control"
+                                value="{{ old('total_value', $contract->total_value) }}" required>
+                            <div class="form-text" id="total_eur_preview"></div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">Incoterm</label>
@@ -95,11 +115,11 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label fw-semibold">Porto di Imbarco</label>
                             <input type="text" name="port_of_loading" class="form-control" value="{{ old('port_of_loading', $contract->port_of_loading) }}">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label fw-semibold">Porto di Scarico</label>
                             <input type="text" name="port_of_discharge" class="form-control" value="{{ old('port_of_discharge', $contract->port_of_discharge) }}">
                         </div>
@@ -157,4 +177,37 @@
         </div>
     </div>
 </form>
+@push('scripts')
+<script>
+const UOM_FACTORS = {kg:1,MT:1000,t:1000,lb:0.453592,lbs:0.453592,bag50:50,bag25:25,sacchi:50};
+function fmt(n){return n.toLocaleString('it-IT',{minimumFractionDigits:0,maximumFractionDigits:2});}
+function updatePreviews(){
+    const qty   = parseFloat(document.getElementById('qty').value)||0;
+    const kpu   = parseFloat(document.getElementById('kg_per_unit').value)||1;
+    const rate  = parseFloat(document.getElementById('exchange_rate').value)||1;
+    const total = parseFloat(document.getElementById('total_value').value)||0;
+    const totalKg  = qty*kpu;
+    const totalEur = total*rate;
+    document.getElementById('qty_kg_preview').textContent = totalKg ? '≈ '+fmt(totalKg)+' kg totali' : '';
+    document.getElementById('total_eur_preview').textContent = totalEur && rate!==1 ? '≈ € '+fmt(totalEur) : '';
+}
+document.getElementById('uom').addEventListener('change',function(){
+    const s=UOM_FACTORS[this.value];
+    if(s!==undefined) document.getElementById('kg_per_unit').value=s;
+    updatePreviews();
+});
+['qty','kg_per_unit','unit_price','exchange_rate','total_value'].forEach(id=>{
+    document.getElementById(id).addEventListener('input',updatePreviews);
+});
+['qty','unit_price'].forEach(id=>{
+    document.getElementById(id).addEventListener('input',function(){
+        const q=parseFloat(document.getElementById('qty').value)||0;
+        const p=parseFloat(document.getElementById('unit_price').value)||0;
+        if(q&&p) document.getElementById('total_value').value=(q*p).toFixed(2);
+        updatePreviews();
+    });
+});
+updatePreviews();
+</script>
+@endpush
 @endsection
