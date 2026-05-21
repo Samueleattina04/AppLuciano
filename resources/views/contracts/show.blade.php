@@ -235,26 +235,59 @@
 
     <!-- TAB PAGAMENTI -->
     <div class="tab-pane fade" id="payments-tab">
-        <div class="d-flex justify-content-between mb-3">
-            <h6>Pagamenti</h6>
-            <a href="{{ route('payments.create') }}?contract_id={{ $contract->id }}" class="btn btn-sm btn-primary">+ Nuovo Pagamento</a>
+        @php
+            $advances = $contract->payments->where('payment_type','advance');
+            $shipmentPayments = $contract->payments->where('payment_type','shipment_payment');
+            $totalAdvanceDue  = $advances->sum('amount_due');
+            $totalAdvancePaid = $advances->where('status','paid')->sum('amount_paid');
+        @endphp
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex gap-2">
+                <h6 class="mb-0">Pagamenti</h6>
+                @if($totalAdvanceDue > 0)
+                <span class="badge bg-info text-dark">Acconti: {{ number_format($totalAdvanceDue,0) }} {{ $contract->currency }} (pagati: {{ number_format($totalAdvancePaid,0) }})</span>
+                @endif
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ route('payments.create') }}?contract_id={{ $contract->id }}" class="btn btn-sm btn-outline-info">
+                    <i class="bi bi-cash-coin me-1"></i>+ Acconto
+                </a>
+                <a href="{{ route('payments.create') }}?contract_id={{ $contract->id }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus me-1"></i>+ Pagamento Spedizione
+                </a>
+            </div>
         </div>
         <div class="table-responsive">
             <table class="table table-supply">
-                <thead><tr><th>Descrizione</th><th class="text-end">Importo Dovuto</th><th class="text-end">Importo Pagato</th><th>Scadenza</th><th>Data Pagamento</th><th>Riferimento</th><th>Stato</th></tr></thead>
+                <thead><tr><th>Tipo</th><th>Descrizione / Spedizione</th><th class="text-end">Importo Dovuto</th><th class="text-end">Pagato</th><th>Scadenza</th><th>Data Pagamento</th><th>Riferimento</th><th>Stato</th></tr></thead>
                 <tbody>
                     @forelse($contract->payments as $p)
                     <tr class="{{ $p->status === 'overdue' ? 'row-overdue' : '' }}">
-                        <td>{{ $p->notes ?? 'Pagamento' }}</td>
+                        <td>
+                            @if($p->payment_type === 'advance')
+                                <span class="badge bg-info text-dark" style="font-size:0.72rem"><i class="bi bi-cash-coin me-1"></i>Acconto</span>
+                            @else
+                                <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size:0.72rem"><i class="bi bi-box-seam me-1"></i>Sped.</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($p->shipment)
+                                <a href="{{ route('shipments.show', $p->shipment) }}" style="font-size:0.85rem">{{ $p->shipment->shipment_code }}</a>
+                            @elseif($p->notes)
+                                <span style="font-size:0.85rem">{{ $p->notes }}</span>
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
+                        </td>
                         <td class="text-end fw-bold">{{ number_format($p->amount_due, 2) }} {{ $p->currency }}</td>
                         <td class="text-end">{{ number_format($p->amount_paid, 2) }}</td>
                         <td>{{ $p->due_date?->format('d/m/Y') }}</td>
                         <td>{{ $p->payment_date?->format('d/m/Y') ?? '—' }}</td>
-                        <td>{{ $p->bank_reference ?? '—' }}</td>
+                        <td style="font-size:0.8rem">{{ $p->bank_reference ?? '—' }}</td>
                         <td><span class="badge-status status-{{ $p->status }}">{{ $p->status_label }}</span></td>
                     </tr>
                     @empty
-                    <tr><td colspan="7" class="text-center text-muted py-3">Nessun pagamento registrato.</td></tr>
+                    <tr><td colspan="8" class="text-center text-muted py-3">Nessun pagamento registrato.</td></tr>
                     @endforelse
                 </tbody>
             </table>

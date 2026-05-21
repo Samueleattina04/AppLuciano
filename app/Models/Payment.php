@@ -10,6 +10,16 @@ class Payment extends Model
 {
     use HasFactory, LogsActivity;
 
+    const TYPE_LABELS = [
+        'advance'          => 'Acconto',
+        'shipment_payment' => 'Pagamento Spedizione',
+    ];
+
+    const TYPE_COLORS = [
+        'advance'          => 'info',
+        'shipment_payment' => 'primary',
+    ];
+
     const STATUS_LABELS = [
         'pending'        => 'In Sospeso',
         'due_soon'       => 'In Scadenza',
@@ -20,6 +30,7 @@ class Payment extends Model
 
     protected $fillable = [
         'contract_id',
+        'payment_type',
         'shipment_id',
         'payment_term_id',
         'supplier_id',
@@ -81,5 +92,15 @@ class Payment extends Model
     public function getStatusLabelAttribute(): string
     {
         return self::STATUS_LABELS[$this->status] ?? $this->status;
+    }
+
+    public function getTypeLabelAttribute(): string
+    {
+        return self::TYPE_LABELS[$this->payment_type] ?? $this->payment_type;
+    }
+
+    public function getIsAdvanceAttribute(): bool
+    {
+        return $this->payment_type === 'advance';
     }
 }
