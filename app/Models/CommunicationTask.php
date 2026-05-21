@@ -11,28 +11,28 @@ class CommunicationTask extends Model
     use HasFactory, LogsActivity;
 
     const CATEGORY_LABELS = [
-        'document_approval'  => 'Document Approval',
-        'cad_bank_request'   => 'CAD/Bank Request',
-        'payment_followup'   => 'Payment Follow-up',
-        'supplier_request'   => 'Supplier Request',
-        'forwarder_request'  => 'Forwarder Request',
-        'internal_note'      => 'Internal Note',
+        'document_approval'  => 'Approvazione Documenti',
+        'cad_bank_request'   => 'Richiesta CAD/Banca',
+        'payment_followup'   => 'Follow-up Pagamento',
+        'supplier_request'   => 'Richiesta Fornitore',
+        'forwarder_request'  => 'Richiesta Spedizioniere',
+        'internal_note'      => 'Nota Interna',
     ];
 
     const PRIORITY_LABELS = [
-        'low'    => 'Low',
-        'normal' => 'Normal',
-        'high'   => 'High',
-        'urgent' => 'Urgent',
+        'low'    => 'Bassa',
+        'normal' => 'Normale',
+        'high'   => 'Alta',
+        'urgent' => 'Urgente',
     ];
 
     const STATUS_LABELS = [
-        'to_review'        => 'To Review',
-        'waiting_internal' => 'Waiting Internal',
-        'waiting_supplier' => 'Waiting Supplier',
-        'ready_to_reply'   => 'Ready to Reply',
-        'replied'          => 'Replied',
-        'closed'           => 'Closed',
+        'to_review'        => 'Da Rivedere',
+        'waiting_internal' => 'In Attesa Interna',
+        'waiting_supplier' => 'In Attesa Fornitore',
+        'ready_to_reply'   => 'Pronto per Risposta',
+        'replied'          => 'Risposto',
+        'closed'           => 'Chiuso',
     ];
 
     protected $fillable = [

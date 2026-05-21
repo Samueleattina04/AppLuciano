@@ -9,13 +9,13 @@
     </div>
     <div class="d-flex gap-2">
         <a href="{{ route('contracts.create') }}" class="btn btn-sm btn-primary">
-            <i class="bi bi-plus me-1"></i>New Contract
+            <i class="bi bi-plus me-1"></i>Nuovo Contratto
         </a>
         <a href="{{ route('shipments.create') }}" class="btn btn-sm btn-success">
-            <i class="bi bi-plus me-1"></i>New Shipment
+            <i class="bi bi-plus me-1"></i>Nuova Spedizione
         </a>
         <a href="{{ route('communications.create') }}" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-plus me-1"></i>New Follow-up
+            <i class="bi bi-plus me-1"></i>Nuovo Follow-up
         </a>
     </div>
 </div>
@@ -25,28 +25,28 @@
     <div class="col-md-3">
         <div class="kpi-card kpi-blue">
             <div class="kpi-value">{{ $containersAtSea }}</div>
-            <div class="kpi-label">Containers at Sea</div>
+            <div class="kpi-label">Container in Mare</div>
             <i class="bi bi-ship kpi-icon"></i>
         </div>
     </div>
     <div class="col-md-3">
         <div class="kpi-card kpi-orange">
             <div class="kpi-value">{{ $etaNext7->count() }}</div>
-            <div class="kpi-label">ETA Next 7 Days</div>
+            <div class="kpi-label">ETA Prossimi 7 Giorni</div>
             <i class="bi bi-calendar-event kpi-icon"></i>
         </div>
     </div>
     <div class="col-md-3">
         <div class="kpi-card kpi-red">
             <div class="kpi-value">{{ $paymentsOverdue->count() }}</div>
-            <div class="kpi-label">Payments Overdue</div>
+            <div class="kpi-label">Pagamenti Scaduti</div>
             <i class="bi bi-exclamation-circle kpi-icon"></i>
         </div>
     </div>
     <div class="col-md-3">
         <div class="kpi-card kpi-purple">
             <div class="kpi-value">{{ $openCommunications }}</div>
-            <div class="kpi-label">Urgent Follow-ups</div>
+            <div class="kpi-label">Follow-up Urgenti</div>
             <i class="bi bi-envelope-exclamation kpi-icon"></i>
         </div>
     </div>
@@ -59,7 +59,7 @@
     <div class="col-md-4">
         <div class="card border-danger">
             <div class="card-header text-danger d-flex align-items-center gap-2">
-                <i class="bi bi-exclamation-circle-fill"></i> Overdue Payments
+                <i class="bi bi-exclamation-circle-fill"></i> Pagamenti Scaduti
                 <span class="badge bg-danger ms-auto">{{ $paymentsOverdue->count() }}</span>
             </div>
             <div class="card-body p-0">
@@ -67,13 +67,13 @@
                 <div class="p-2 border-bottom d-flex justify-content-between align-items-center">
                     <div>
                         <div style="font-size:0.8rem;font-weight:600">{{ $p->contract->contract_number ?? 'N/A' }}</div>
-                        <div style="font-size:0.73rem;color:#94a3b8">{{ $p->supplier->name ?? '' }} · Due {{ $p->due_date?->format('d/m/Y') }}</div>
+                        <div style="font-size:0.73rem;color:#94a3b8">{{ $p->supplier->name ?? '' }} · Scad. {{ $p->due_date?->format('d/m/Y') }}</div>
                     </div>
                     <span class="badge-status status-overdue">{{ number_format($p->amount_due,0) }} {{ $p->currency }}</span>
                 </div>
                 @endforeach
                 @if($paymentsOverdue->count() > 4)
-                <div class="p-2 text-center"><a href="{{ route('payments.index') }}?tab=overdue" class="text-danger" style="font-size:0.8rem">View all {{ $paymentsOverdue->count() }} overdue &rarr;</a></div>
+                <div class="p-2 text-center"><a href="{{ route('payments.index') }}?tab=overdue" class="text-danger" style="font-size:0.8rem">Vedi tutti {{ $paymentsOverdue->count() }} scaduti &rarr;</a></div>
                 @endif
             </div>
         </div>
@@ -84,7 +84,7 @@
     <div class="col-md-4">
         <div class="card border-warning">
             <div class="card-header text-warning d-flex align-items-center gap-2">
-                <i class="bi bi-clock-history"></i> Due This Week
+                <i class="bi bi-clock-history"></i> In Scadenza Questa Settimana
                 <span class="badge bg-warning text-dark ms-auto">{{ $paymentsDueSoon->count() }}</span>
             </div>
             <div class="card-body p-0">
@@ -92,7 +92,7 @@
                 <div class="p-2 border-bottom d-flex justify-content-between align-items-center">
                     <div>
                         <div style="font-size:0.8rem;font-weight:600">{{ $p->contract->contract_number ?? 'N/A' }}</div>
-                        <div style="font-size:0.73rem;color:#94a3b8">{{ $p->supplier->name ?? '' }} · Due {{ $p->due_date?->format('d/m/Y') }}</div>
+                        <div style="font-size:0.73rem;color:#94a3b8">{{ $p->supplier->name ?? '' }} · Scad. {{ $p->due_date?->format('d/m/Y') }}</div>
                     </div>
                     <span class="badge-status status-due_soon">{{ number_format($p->amount_due,0) }} {{ $p->currency }}</span>
                 </div>
@@ -106,7 +106,7 @@
     <div class="col-md-4">
         <div class="card border-primary">
             <div class="card-header text-primary d-flex align-items-center gap-2">
-                <i class="bi bi-geo-alt"></i> Arrivals Next 7 Days
+                <i class="bi bi-geo-alt"></i> Arrivi Prossimi 7 Giorni
                 <span class="badge bg-primary ms-auto">{{ $etaNext7->count() }}</span>
             </div>
             <div class="card-body p-0">
@@ -131,7 +131,7 @@
     <div class="col-md-5">
         <div class="card h-100">
             <div class="card-header d-flex align-items-center gap-2">
-                <i class="bi bi-bar-chart-fill text-primary"></i> Shipment Status Breakdown
+                <i class="bi bi-bar-chart-fill text-primary"></i> Stato Spedizioni
             </div>
             <div class="card-body p-0">
                 @foreach(\App\Models\Shipment::STATUS_LABELS as $key => $label)
@@ -150,8 +150,8 @@
     <div class="col-md-7">
         <div class="card h-100">
             <div class="card-header d-flex align-items-center gap-2">
-                <i class="bi bi-exclamation-triangle-fill text-warning"></i> Open Claims
-                <a href="{{ route('claims.create') }}" class="btn btn-sm btn-outline-warning ms-auto" style="font-size:0.75rem">+ New</a>
+                <i class="bi bi-exclamation-triangle-fill text-warning"></i> Reclami Aperti
+                <a href="{{ route('claims.create') }}" class="btn btn-sm btn-outline-warning ms-auto" style="font-size:0.75rem">+ Nuovo</a>
             </div>
             <div class="card-body p-0">
                 @forelse($openClaimsList as $claim)
@@ -167,7 +167,7 @@
                 </div>
                 @empty
                 <div class="p-3 text-center text-muted" style="font-size:0.875rem">
-                    <i class="bi bi-check-circle text-success me-1"></i>No open claims
+                    <i class="bi bi-check-circle text-success me-1"></i>Nessun reclamo aperto
                 </div>
                 @endforelse
             </div>
@@ -180,7 +180,7 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header d-flex align-items-center gap-2">
-                <i class="bi bi-clock-history text-secondary"></i> Recent Activity
+                <i class="bi bi-clock-history text-secondary"></i> Attività Recente
             </div>
             <div class="card-body" style="max-height:320px;overflow-y:auto">
                 <div class="timeline">
@@ -190,10 +190,10 @@
                             <span class="badge-status status-{{ $log->description === 'created' ? 'confirmed' : ($log->description === 'deleted' ? 'cancelled' : 'partially_shipped') }}" style="font-size:0.65rem">{{ strtoupper($log->description) }}</span>
                             {{ $log->log_name }} #{{ $log->subject_id }}
                         </div>
-                        <div style="font-size:0.73rem;color:#94a3b8">{{ $log->created_at?->diffForHumans() }} · {{ $log->causer_name ?? 'System' }}</div>
+                        <div style="font-size:0.73rem;color:#94a3b8">{{ $log->created_at?->diffForHumans() }} · {{ $log->causer_name ?? 'Sistema' }}</div>
                     </div>
                     @empty
-                    <p class="text-muted" style="font-size:0.875rem">No activity recorded yet.</p>
+                    <p class="text-muted" style="font-size:0.875rem">Nessuna attività registrata.</p>
                     @endforelse
                 </div>
             </div>
@@ -203,7 +203,7 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header d-flex align-items-center gap-2">
-                <i class="bi bi-lightning-charge-fill text-warning"></i> Quick Actions
+                <i class="bi bi-lightning-charge-fill text-warning"></i> Azioni Rapide
             </div>
             <div class="card-body">
                 <div class="row g-2">
@@ -211,8 +211,8 @@
                         <a href="{{ route('contracts.create') }}" class="btn btn-outline-primary w-100 text-start d-flex align-items-center gap-2">
                             <i class="bi bi-file-earmark-plus"></i>
                             <div>
-                                <div style="font-size:0.8rem;font-weight:600">New Contract</div>
-                                <div style="font-size:0.7rem;color:#64748b">Register a purchase contract</div>
+                                <div style="font-size:0.8rem;font-weight:600">Nuovo Contratto</div>
+                                <div style="font-size:0.7rem;color:#64748b">Registra un contratto</div>
                             </div>
                         </a>
                     </div>
@@ -220,8 +220,8 @@
                         <a href="{{ route('shipments.create') }}" class="btn btn-outline-success w-100 text-start d-flex align-items-center gap-2">
                             <i class="bi bi-box-seam"></i>
                             <div>
-                                <div style="font-size:0.8rem;font-weight:600">New Shipment</div>
-                                <div style="font-size:0.7rem;color:#64748b">Track a new container</div>
+                                <div style="font-size:0.8rem;font-weight:600">Nuova Spedizione</div>
+                                <div style="font-size:0.7rem;color:#64748b">Traccia un container</div>
                             </div>
                         </a>
                     </div>
@@ -229,8 +229,8 @@
                         <a href="{{ route('payments.create') }}" class="btn btn-outline-warning w-100 text-start d-flex align-items-center gap-2">
                             <i class="bi bi-credit-card"></i>
                             <div>
-                                <div style="font-size:0.8rem;font-weight:600">New Payment</div>
-                                <div style="font-size:0.7rem;color:#64748b">Record a payment</div>
+                                <div style="font-size:0.8rem;font-weight:600">Nuovo Pagamento</div>
+                                <div style="font-size:0.7rem;color:#64748b">Registra un pagamento</div>
                             </div>
                         </a>
                     </div>
@@ -238,8 +238,8 @@
                         <a href="{{ route('communications.create') }}" class="btn btn-outline-secondary w-100 text-start d-flex align-items-center gap-2">
                             <i class="bi bi-envelope-plus"></i>
                             <div>
-                                <div style="font-size:0.8rem;font-weight:600">New Follow-up</div>
-                                <div style="font-size:0.7rem;color:#64748b">Log a communication</div>
+                                <div style="font-size:0.8rem;font-weight:600">Nuovo Follow-up</div>
+                                <div style="font-size:0.7rem;color:#64748b">Registra una comunicazione</div>
                             </div>
                         </a>
                     </div>
@@ -247,8 +247,8 @@
                         <a href="{{ route('claims.create') }}" class="btn btn-outline-danger w-100 text-start d-flex align-items-center gap-2">
                             <i class="bi bi-exclamation-triangle"></i>
                             <div>
-                                <div style="font-size:0.8rem;font-weight:600">New Claim</div>
-                                <div style="font-size:0.7rem;color:#64748b">Open a claim</div>
+                                <div style="font-size:0.8rem;font-weight:600">Nuovo Reclamo</div>
+                                <div style="font-size:0.7rem;color:#64748b">Apri un reclamo</div>
                             </div>
                         </a>
                     </div>
@@ -256,8 +256,8 @@
                         <a href="{{ route('suppliers.create') }}" class="btn btn-outline-info w-100 text-start d-flex align-items-center gap-2">
                             <i class="bi bi-building-add"></i>
                             <div>
-                                <div style="font-size:0.8rem;font-weight:600">New Supplier</div>
-                                <div style="font-size:0.7rem;color:#64748b">Add a supplier</div>
+                                <div style="font-size:0.8rem;font-weight:600">Nuovo Fornitore</div>
+                                <div style="font-size:0.7rem;color:#64748b">Aggiungi un fornitore</div>
                             </div>
                         </a>
                     </div>

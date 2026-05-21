@@ -11,11 +11,11 @@ class Payment extends Model
     use HasFactory, LogsActivity;
 
     const STATUS_LABELS = [
-        'pending'        => 'Pending',
-        'due_soon'       => 'Due Soon',
-        'overdue'        => 'Overdue',
-        'paid'           => 'Paid',
-        'partially_paid' => 'Partially Paid',
+        'pending'        => 'In Sospeso',
+        'due_soon'       => 'In Scadenza',
+        'overdue'        => 'Scaduto',
+        'paid'           => 'Pagato',
+        'partially_paid' => 'Parzialmente Pagato',
     ];
 
     protected $fillable = [

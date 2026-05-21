@@ -10,14 +10,14 @@ class Document extends Model
     use HasFactory;
 
     const TYPE_LABELS = [
-        'bill_of_lading'            => 'Bill of Lading',
-        'commercial_invoice'        => 'Commercial Invoice',
+        'bill_of_lading'            => 'Polizza di Carico',
+        'commercial_invoice'        => 'Fattura Commerciale',
         'packing_list'              => 'Packing List',
-        'certificate_of_origin'     => 'Certificate of Origin',
-        'phytosanitary_certificate' => 'Phytosanitary Certificate',
-        'insurance_certificate'     => 'Insurance Certificate',
-        'quality_certificate'       => 'Quality Certificate',
-        'other'                     => 'Other',
+        'certificate_of_origin'     => 'Certificato di Origine',
+        'phytosanitary_certificate' => 'Certificato Fitosanitario',
+        'insurance_certificate'     => 'Certificato Assicurativo',
+        'quality_certificate'       => 'Certificato di Qualità',
+        'other'                     => 'Altro',
     ];
 
     const CRITICAL_DOCS = [

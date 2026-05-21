@@ -74,7 +74,7 @@ class PaymentController extends Controller
 
         Payment::create($validated);
 
-        return redirect()->route('payments.index')->with('success', 'Payment created successfully.');
+        return redirect()->route('payments.index')->with('success', 'Pagamento creato con successo.');
     }
 
     public function edit(Payment $payment)
@@ -102,7 +102,7 @@ class PaymentController extends Controller
 
         $payment->update($validated);
 
-        return redirect()->route('payments.index')->with('success', 'Payment updated successfully.');
+        return redirect()->route('payments.index')->with('success', 'Pagamento aggiornato con successo.');
     }
 
     public function show(Payment $payment)
@@ -114,7 +114,7 @@ class PaymentController extends Controller
     public function destroy(Payment $payment)
     {
         $payment->delete();
-        return redirect()->route('payments.index')->with('success', 'Payment deleted.');
+        return redirect()->route('payments.index')->with('success', 'Pagamento eliminato.');
     }
 
     public function markPaid(Request $request, Payment $payment)
@@ -126,6 +126,6 @@ class PaymentController extends Controller
             'bank_reference' => $request->bank_reference ?? $payment->bank_reference,
         ]);
 
-        return back()->with('success', 'Payment marked as paid.');
+        return back()->with('success', 'Pagamento segnato come pagato.');
     }
 }

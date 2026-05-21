@@ -55,7 +55,7 @@ class ClaimController extends Controller
 
         Claim::create($validated);
 
-        return redirect()->route('claims.index')->with('success', 'Claim created successfully.');
+        return redirect()->route('claims.index')->with('success', 'Reclamo creato con successo.');
     }
 
     public function show(Claim $claim)
@@ -89,12 +89,12 @@ class ClaimController extends Controller
 
         $claim->update($validated);
 
-        return redirect()->route('claims.index')->with('success', 'Claim updated successfully.');
+        return redirect()->route('claims.index')->with('success', 'Reclamo aggiornato con successo.');
     }
 
     public function destroy(Claim $claim)
     {
         $claim->delete();
-        return redirect()->route('claims.index')->with('success', 'Claim deleted.');
+        return redirect()->route('claims.index')->with('success', 'Reclamo eliminato.');
     }
 }

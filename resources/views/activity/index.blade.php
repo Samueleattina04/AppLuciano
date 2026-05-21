@@ -1,17 +1,17 @@
 @extends('layouts.app')
-@section('title', 'Activity Log — SupplyManager')
+@section('title', 'Registro Attività — SupplyManager')
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="page-title mb-0">Activity Log</h1>
+    <h1 class="page-title mb-0">Registro Attività</h1>
 </div>
 
-<!-- FILTERS -->
+<!-- FILTRI -->
 <div class="card mb-3">
     <div class="card-body py-2">
         <form method="GET" class="row g-2 align-items-end">
             <div class="col-md-3">
                 <select name="log_name" class="form-select form-select-sm">
-                    <option value="">All Modules</option>
+                    <option value="">Tutti i Moduli</option>
                     @foreach($logNames as $name)
                         <option value="{{ $name }}" {{ request('log_name') == $name ? 'selected' : '' }}>{{ $name }}</option>
                     @endforeach
@@ -19,17 +19,17 @@
             </div>
             <div class="col-md-2">
                 <select name="description" class="form-select form-select-sm">
-                    <option value="">All Actions</option>
-                    <option value="created" {{ request('description') == 'created' ? 'selected' : '' }}>Created</option>
-                    <option value="updated" {{ request('description') == 'updated' ? 'selected' : '' }}>Updated</option>
-                    <option value="deleted" {{ request('description') == 'deleted' ? 'selected' : '' }}>Deleted</option>
+                    <option value="">Tutte le Azioni</option>
+                    <option value="created" {{ request('description') == 'created' ? 'selected' : '' }}>Creato</option>
+                    <option value="updated" {{ request('description') == 'updated' ? 'selected' : '' }}>Aggiornato</option>
+                    <option value="deleted" {{ request('description') == 'deleted' ? 'selected' : '' }}>Eliminato</option>
                 </select>
             </div>
-            <div class="col-md-2"><input type="date" name="date_from" class="form-control form-control-sm" value="{{ request('date_from') }}" placeholder="From"></div>
-            <div class="col-md-2"><input type="date" name="date_to" class="form-control form-control-sm" value="{{ request('date_to') }}" placeholder="To"></div>
+            <div class="col-md-2"><input type="date" name="date_from" class="form-control form-control-sm" value="{{ request('date_from') }}" placeholder="Da"></div>
+            <div class="col-md-2"><input type="date" name="date_to" class="form-control form-control-sm" value="{{ request('date_to') }}" placeholder="A"></div>
             <div class="col-auto">
-                <button type="submit" class="btn btn-sm btn-primary">Filter</button>
-                <a href="{{ route('activity.index') }}" class="btn btn-sm btn-outline-secondary">Clear</a>
+                <button type="submit" class="btn btn-sm btn-primary">Filtra</button>
+                <a href="{{ route('activity.index') }}" class="btn btn-sm btn-outline-secondary">Azzera</a>
             </div>
         </form>
     </div>
@@ -45,18 +45,18 @@
                     <strong style="font-size:0.875rem">{{ $log->log_name }}</strong>
                     <span class="text-muted" style="font-size:0.8rem">#{{ $log->subject_id }}</span>
                     @if($log->causer_name)
-                    <span class="text-muted" style="font-size:0.8rem">by {{ $log->causer_name }}</span>
+                    <span class="text-muted" style="font-size:0.8rem">da {{ $log->causer_name }}</span>
                     @endif
                 </div>
                 <div style="font-size:0.75rem;color:#94a3b8">{{ $log->created_at?->format('d/m/Y H:i') }}</div>
                 @if($log->properties && is_array($log->properties) && count($log->properties) > 0)
                 <div style="font-size:0.75rem;color:#64748b;margin-top:2px">
-                    Changed: {{ collect($log->properties)->keys()->implode(', ') }}
+                    Modificati: {{ collect($log->properties)->keys()->implode(', ') }}
                 </div>
                 @endif
             </div>
             @empty
-            <p class="text-muted text-center py-5">No activity recorded yet.</p>
+            <p class="text-muted text-center py-5">Nessuna attività registrata.</p>
             @endforelse
         </div>
     </div>

@@ -1,64 +1,64 @@
 @extends('layouts.app')
-@section('title', 'Payments — SupplyManager')
+@section('title', 'Pagamenti — SupplyManager')
 @section('content')
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h1 class="page-title mb-0">Payments</h1>
-        <small class="text-muted">{{ $payments->total() }} payments found</small>
+        <h1 class="page-title mb-0">Pagamenti</h1>
+        <small class="text-muted">{{ $payments->total() }} pagamenti trovati</small>
     </div>
     <a href="{{ route('payments.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-1"></i>New Payment
+        <i class="bi bi-plus-circle me-1"></i>Nuovo Pagamento
     </a>
 </div>
 
-<!-- FILTER TABS -->
+<!-- TAB FILTRI -->
 <ul class="nav nav-tabs mb-3">
-    <li class="nav-item"><a class="nav-link {{ !request('tab') && !request('status') ? 'active' : '' }}" href="{{ route('payments.index') }}">All</a></li>
+    <li class="nav-item"><a class="nav-link {{ !request('tab') && !request('status') ? 'active' : '' }}" href="{{ route('payments.index') }}">Tutti</a></li>
     <li class="nav-item">
         <a class="nav-link {{ request('tab') === 'overdue' ? 'active' : '' }}" href="{{ route('payments.index') }}?tab=overdue">
-            <span class="text-danger">Overdue</span>
+            <span class="text-danger">Scaduti</span>
             @if($statusCounts['overdue'] > 0)<span class="badge bg-danger ms-1">{{ $statusCounts['overdue'] }}</span>@endif
         </a>
     </li>
     <li class="nav-item">
         <a class="nav-link {{ request('tab') === 'due_soon' ? 'active' : '' }}" href="{{ route('payments.index') }}?tab=due_soon">
-            Due Soon <span class="badge bg-warning text-dark ms-1">{{ $statusCounts['due_soon'] }}</span>
+            In Scadenza <span class="badge bg-warning text-dark ms-1">{{ $statusCounts['due_soon'] }}</span>
         </a>
     </li>
-    <li class="nav-item"><a class="nav-link {{ request('status') === 'pending' ? 'active' : '' }}" href="{{ route('payments.index') }}?status=pending">Pending</a></li>
-    <li class="nav-item"><a class="nav-link {{ request('status') === 'paid' ? 'active' : '' }}" href="{{ route('payments.index') }}?status=paid">Paid <span class="badge bg-success ms-1">{{ $statusCounts['paid'] }}</span></a></li>
+    <li class="nav-item"><a class="nav-link {{ request('status') === 'pending' ? 'active' : '' }}" href="{{ route('payments.index') }}?status=pending">In Sospeso</a></li>
+    <li class="nav-item"><a class="nav-link {{ request('status') === 'paid' ? 'active' : '' }}" href="{{ route('payments.index') }}?status=paid">Pagati <span class="badge bg-success ms-1">{{ $statusCounts['paid'] }}</span></a></li>
 </ul>
 
-<!-- SEARCH -->
+<!-- RICERCA -->
 <div class="card mb-3">
     <div class="card-body py-2">
         <form method="GET" class="d-flex gap-2">
             @if(request('tab')) <input type="hidden" name="tab" value="{{ request('tab') }}"> @endif
             @if(request('status')) <input type="hidden" name="status" value="{{ request('status') }}"> @endif
-            <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm" placeholder="Search contract, supplier, reference..." style="max-width:400px">
-            <button type="submit" class="btn btn-sm btn-primary">Search</button>
+            <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm" placeholder="Cerca contratto, fornitore, riferimento..." style="max-width:400px">
+            <button type="submit" class="btn btn-sm btn-primary">Cerca</button>
         </form>
     </div>
 </div>
 
-<!-- TABLE -->
+<!-- TABELLA -->
 <div class="card">
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-supply mb-0">
                 <thead>
                     <tr>
-                        <th>Contract</th>
-                        <th>Supplier</th>
-                        <th>Shipment</th>
-                        <th class="text-end">Amount Due</th>
-                        <th class="text-end">Paid</th>
-                        <th>Due Date</th>
-                        <th>Paid Date</th>
-                        <th>Reference</th>
-                        <th class="text-center">Status</th>
-                        <th class="text-end">Actions</th>
+                        <th>Contratto</th>
+                        <th>Fornitore</th>
+                        <th>Spedizione</th>
+                        <th class="text-end">Importo Dovuto</th>
+                        <th class="text-end">Pagato</th>
+                        <th>Scadenza</th>
+                        <th>Data Pagamento</th>
+                        <th>Riferimento</th>
+                        <th class="text-center">Stato</th>
+                        <th class="text-end">Azioni</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -89,9 +89,9 @@
                                 {{ $p->due_date->format('d/m/Y') }}
                             </span>
                             @if($daysLeft < 0 && $p->status !== 'paid')
-                            <div class="text-muted-sm text-danger">{{ abs($daysLeft) }}d overdue</div>
+                            <div class="text-muted-sm text-danger">{{ abs($daysLeft) }}g scaduto</div>
                             @elseif($daysLeft >= 0 && $daysLeft <= 7 && $p->status !== 'paid')
-                            <div class="text-muted-sm">in {{ $daysLeft }}d</div>
+                            <div class="text-muted-sm">tra {{ $daysLeft }}g</div>
                             @endif
                             @else —
                             @endif
@@ -106,7 +106,7 @@
                                 @if($p->status !== 'paid')
                                 <form method="POST" action="{{ route('payments.mark-paid', $p) }}">
                                     @csrf
-                                    <button type="submit" class="btn btn-xs btn-sm btn-success" title="Mark as Paid">
+                                    <button type="submit" class="btn btn-xs btn-sm btn-success" title="Segna come Pagato">
                                         <i class="bi bi-check-circle"></i>
                                     </button>
                                 </form>
@@ -118,7 +118,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="10" class="text-center py-4 text-muted">No payments found.</td></tr>
+                    <tr><td colspan="10" class="text-center py-4 text-muted">Nessun pagamento trovato.</td></tr>
                     @endforelse
                 </tbody>
             </table>

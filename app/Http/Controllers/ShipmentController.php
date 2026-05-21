@@ -88,7 +88,7 @@ class ShipmentController extends Controller
         }
 
         return redirect()->route('shipments.show', $shipment)
-            ->with('success', 'Shipment ' . $shipment->shipment_code . ' created successfully.');
+            ->with('success', 'Spedizione ' . $shipment->shipment_code . ' creata con successo.');
     }
 
     public function show(Shipment $shipment)
@@ -148,13 +148,13 @@ class ShipmentController extends Controller
         $shipment->update($validated);
 
         return redirect()->route('shipments.show', $shipment)
-            ->with('success', 'Shipment updated successfully.');
+            ->with('success', 'Spedizione aggiornata con successo.');
     }
 
     public function destroy(Shipment $shipment)
     {
         $shipment->delete();
-        return redirect()->route('shipments.index')->with('success', 'Shipment deleted.');
+        return redirect()->route('shipments.index')->with('success', 'Spedizione eliminata.');
     }
 
     public function updateStatus(Request $request, Shipment $shipment)
@@ -165,6 +165,6 @@ class ShipmentController extends Controller
 
         $shipment->update($validated);
 
-        return back()->with('success', 'Status updated to: ' . Shipment::STATUS_LABELS[$validated['status']]);
+        return back()->with('success', 'Stato aggiornato: ' . Shipment::STATUS_LABELS[$validated['status']]);
     }
 }

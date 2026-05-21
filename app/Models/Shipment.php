@@ -12,14 +12,14 @@ class Shipment extends Model
     use HasFactory, SoftDeletes, LogsActivity;
 
     const STATUS_LABELS = [
-        'in_production'       => 'In Production',
-        'ready_to_ship'       => 'Ready to Ship',
-        'at_port'             => 'At Port',
-        'in_transit'          => 'In Transit',
-        'arrived_pod'         => 'Arrived POD',
-        'customs_clearance'   => 'Customs Clearance',
-        'delivered_warehouse' => 'Delivered to Warehouse',
-        'closed'              => 'Closed',
+        'in_production'       => 'In Produzione',
+        'ready_to_ship'       => 'Pronto alla Spedizione',
+        'at_port'             => 'Al Porto',
+        'in_transit'          => 'In Transito',
+        'arrived_pod'         => 'Arrivato al POD',
+        'customs_clearance'   => 'Sdoganamento',
+        'delivered_warehouse' => 'Consegnato in Magazzino',
+        'closed'              => 'Chiuso',
     ];
 
     const STATUS_COLORS = [

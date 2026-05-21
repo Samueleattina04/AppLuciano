@@ -42,17 +42,17 @@ class DocumentController extends Controller
             'uploaded_by'       => auth()->id(),
         ]);
 
-        return back()->with('success', 'Document uploaded successfully.');
+        return back()->with('success', 'Documento caricato con successo.');
     }
 
     public function download(Document $document)
     {
         if (!$document->file_path) {
-            return back()->with('error', 'No file attached to this document.');
+            return back()->with('error', 'Nessun file allegato a questo documento.');
         }
 
         if (!Storage::disk('public')->exists($document->file_path)) {
-            return back()->with('error', 'File not found on server.');
+            return back()->with('error', 'File non trovato sul server.');
         }
 
         return Storage::disk('public')->download($document->file_path, $document->name);
@@ -66,6 +66,6 @@ class DocumentController extends Controller
 
         $document->delete();
 
-        return back()->with('success', 'Document deleted.');
+        return back()->with('success', 'Documento eliminato.');
     }
 }

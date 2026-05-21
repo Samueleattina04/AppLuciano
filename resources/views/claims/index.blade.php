@@ -1,19 +1,19 @@
 @extends('layouts.app')
-@section('title', 'Claims — SupplyManager')
+@section('title', 'Reclami — SupplyManager')
 @section('content')
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="page-title mb-0">Claims</h1>
-    <a href="{{ route('claims.create') }}" class="btn btn-warning"><i class="bi bi-plus-circle me-1"></i>New Claim</a>
+    <h1 class="page-title mb-0">Reclami</h1>
+    <a href="{{ route('claims.create') }}" class="btn btn-warning"><i class="bi bi-plus-circle me-1"></i>Nuovo Reclamo</a>
 </div>
 
-<!-- FILTERS -->
+<!-- FILTRI -->
 <div class="card mb-3">
     <div class="card-body py-2">
         <form method="GET" class="row g-2 align-items-end">
             <div class="col-md-3">
                 <select name="status" class="form-select form-select-sm">
-                    <option value="">All Statuses</option>
+                    <option value="">Tutti gli Stati</option>
                     @foreach(\App\Models\Claim::STATUS_LABELS as $k => $v)
                         <option value="{{ $k }}" {{ request('status') == $k ? 'selected' : '' }}>{{ $v }}</option>
                     @endforeach
@@ -21,15 +21,15 @@
             </div>
             <div class="col-md-3">
                 <select name="claim_type" class="form-select form-select-sm">
-                    <option value="">All Types</option>
+                    <option value="">Tutti i Tipi</option>
                     @foreach(\App\Models\Claim::TYPE_LABELS as $k => $v)
                         <option value="{{ $k }}" {{ request('claim_type') == $k ? 'selected' : '' }}>{{ $v }}</option>
                     @endforeach
                 </select>
             </div>
             <div class="col-auto">
-                <button type="submit" class="btn btn-sm btn-primary">Filter</button>
-                <a href="{{ route('claims.index') }}" class="btn btn-sm btn-outline-secondary">Clear</a>
+                <button type="submit" class="btn btn-sm btn-primary">Filtra</button>
+                <a href="{{ route('claims.index') }}" class="btn btn-sm btn-outline-secondary">Azzera</a>
             </div>
         </form>
     </div>
@@ -41,15 +41,15 @@
             <table class="table table-supply mb-0">
                 <thead>
                     <tr>
-                        <th>Type</th>
-                        <th>Contract</th>
-                        <th>Shipment</th>
-                        <th>Supplier</th>
-                        <th>Reason</th>
-                        <th class="text-end">Amount</th>
-                        <th class="text-center">Status</th>
-                        <th>Date</th>
-                        <th class="text-end">Actions</th>
+                        <th>Tipo</th>
+                        <th>Contratto</th>
+                        <th>Spedizione</th>
+                        <th>Fornitore</th>
+                        <th>Motivo</th>
+                        <th class="text-end">Importo</th>
+                        <th class="text-center">Stato</th>
+                        <th>Data</th>
+                        <th class="text-end">Azioni</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -71,7 +71,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="9" class="text-center py-4 text-muted">No claims found.</td></tr>
+                    <tr><td colspan="9" class="text-center py-4 text-muted">Nessun reclamo trovato.</td></tr>
                     @endforelse
                 </tbody>
             </table>

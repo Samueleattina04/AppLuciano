@@ -1,15 +1,15 @@
 @extends('layouts.app')
-@section('title', 'Suppliers — SupplyManager')
+@section('title', 'Fornitori — SupplyManager')
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="page-title mb-0">Suppliers</h1>
-    <a href="{{ route('suppliers.create') }}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>New Supplier</a>
+    <h1 class="page-title mb-0">Fornitori</h1>
+    <a href="{{ route('suppliers.create') }}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Nuovo Fornitore</a>
 </div>
 <div class="card mb-3">
     <div class="card-body py-2">
         <form method="GET" class="d-flex gap-2">
-            <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm" placeholder="Search name, country..." style="max-width:300px">
-            <button type="submit" class="btn btn-sm btn-primary">Search</button>
+            <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm" placeholder="Cerca nome, paese..." style="max-width:300px">
+            <button type="submit" class="btn btn-sm btn-primary">Cerca</button>
         </form>
     </div>
 </div>
@@ -17,7 +17,7 @@
     <div class="card-body p-0">
         <table class="table table-supply mb-0">
             <thead>
-                <tr><th>Supplier</th><th>Country</th><th>Contact</th><th class="text-center">Contracts</th><th class="text-center">Shipments</th><th class="text-end">Actions</th></tr>
+                <tr><th>Fornitore</th><th>Paese</th><th>Contatto</th><th class="text-center">Contratti</th><th class="text-center">Spedizioni</th><th class="text-end">Azioni</th></tr>
             </thead>
             <tbody>
                 @forelse($suppliers as $s)
@@ -38,7 +38,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="6" class="text-center py-4 text-muted">No suppliers found.</td></tr>
+                <tr><td colspan="6" class="text-center py-4 text-muted">Nessun fornitore trovato.</td></tr>
                 @endforelse
             </tbody>
         </table>

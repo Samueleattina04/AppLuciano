@@ -1,24 +1,24 @@
 @extends('layouts.app')
-@section('title', 'Supplier — SupplyManager')
+@section('title', 'Fornitore — SupplyManager')
 @section('content')
 <div class="d-flex align-items-center gap-2 mb-4">
     <a href="{{ route('suppliers.index') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
     <h1 class="page-title mb-0">{{ $supplier->name }}</h1>
     <span class="badge bg-light text-dark border">{{ $supplier->country ?? '' }}</span>
     <div class="ms-auto">
-        <a href="{{ route('suppliers.edit', $supplier) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+        <a href="{{ route('suppliers.edit', $supplier) }}" class="btn btn-sm btn-outline-primary">Modifica</a>
     </div>
 </div>
 <div class="row g-3">
     <div class="col-md-4">
         <div class="card">
-            <div class="card-header">Contact Info</div>
+            <div class="card-header">Contatti</div>
             <div class="card-body">
                 <table class="table table-sm table-borderless">
-                    <tr><td class="text-muted">Name</td><td>{{ $supplier->contact_name ?? '—' }}</td></tr>
+                    <tr><td class="text-muted">Nome</td><td>{{ $supplier->contact_name ?? '—' }}</td></tr>
                     <tr><td class="text-muted">Email</td><td>{{ $supplier->contact_email ?? '—' }}</td></tr>
-                    <tr><td class="text-muted">Phone</td><td>{{ $supplier->contact_phone ?? '—' }}</td></tr>
-                    <tr><td class="text-muted">Country</td><td>{{ $supplier->country ?? '—' }}</td></tr>
+                    <tr><td class="text-muted">Telefono</td><td>{{ $supplier->contact_phone ?? '—' }}</td></tr>
+                    <tr><td class="text-muted">Paese</td><td>{{ $supplier->country ?? '—' }}</td></tr>
                 </table>
                 @if($supplier->notes)<hr><p class="mb-0" style="font-size:0.875rem">{{ $supplier->notes }}</p>@endif
             </div>
@@ -26,7 +26,7 @@
     </div>
     <div class="col-md-8">
         <div class="card mb-3">
-            <div class="card-header">Contracts ({{ $supplier->contracts->count() }})</div>
+            <div class="card-header">Contratti ({{ $supplier->contracts->count() }})</div>
             <div class="card-body p-0">
                 @forelse($supplier->contracts->take(5) as $c)
                 <div class="d-flex align-items-center justify-content-between p-2 border-bottom">
@@ -37,12 +37,12 @@
                     </div>
                 </div>
                 @empty
-                <div class="p-3 text-center text-muted">No contracts.</div>
+                <div class="p-3 text-center text-muted">Nessun contratto.</div>
                 @endforelse
             </div>
         </div>
         <div class="card">
-            <div class="card-header">Recent Shipments ({{ $supplier->shipments->count() }})</div>
+            <div class="card-header">Spedizioni Recenti ({{ $supplier->shipments->count() }})</div>
             <div class="card-body p-0">
                 @forelse($supplier->shipments->take(5) as $s)
                 <div class="d-flex align-items-center justify-content-between p-2 border-bottom">
@@ -53,7 +53,7 @@
                     <span class="badge-status status-{{ $s->status }}">{{ $s->status_label }}</span>
                 </div>
                 @empty
-                <div class="p-3 text-center text-muted">No shipments.</div>
+                <div class="p-3 text-center text-muted">Nessuna spedizione.</div>
                 @endforelse
             </div>
         </div>

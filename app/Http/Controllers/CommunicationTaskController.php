@@ -86,7 +86,7 @@ class CommunicationTaskController extends Controller
         $task = CommunicationTask::create($validated);
 
         return redirect()->route('communications.show', $task)
-            ->with('success', 'Communication task created successfully.');
+            ->with('success', 'Task di comunicazione creato con successo.');
     }
 
     public function show(CommunicationTask $communication)
@@ -124,18 +124,18 @@ class CommunicationTaskController extends Controller
         $communication->update($validated);
 
         return redirect()->route('communications.show', $communication)
-            ->with('success', 'Task updated successfully.');
+            ->with('success', 'Task aggiornato con successo.');
     }
 
     public function destroy(CommunicationTask $communication)
     {
         $communication->delete();
-        return redirect()->route('communications.index')->with('success', 'Task deleted.');
+        return redirect()->route('communications.index')->with('success', 'Task eliminato.');
     }
 
     public function markReplied(CommunicationTask $communication)
     {
         $communication->update(['status' => 'replied']);
-        return back()->with('success', 'Task marked as replied.');
+        return back()->with('success', 'Task segnato come risposto.');
     }
 }

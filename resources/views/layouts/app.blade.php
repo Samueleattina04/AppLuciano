@@ -81,46 +81,46 @@ body{background:var(--surface);font-family:'Segoe UI',system-ui,-apple-system,sa
         <small>Supply Chain Operations</small>
     </div>
 
-    <p class="sidebar-section">Main</p>
+    <p class="sidebar-section">Principale</p>
     <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
         <i class="bi bi-speedometer2"></i> Dashboard
     </a>
 
-    <p class="sidebar-section">Operations</p>
+    <p class="sidebar-section">Operazioni</p>
     <a href="{{ route('contracts.index') }}" class="nav-link {{ request()->routeIs('contracts.*') ? 'active' : '' }}">
-        <i class="bi bi-file-earmark-text"></i> Contracts
+        <i class="bi bi-file-earmark-text"></i> Contratti
     </a>
     <a href="{{ route('shipments.index') }}" class="nav-link {{ request()->routeIs('shipments.*') ? 'active' : '' }}">
-        <i class="bi bi-box-seam"></i> Shipments
+        <i class="bi bi-box-seam"></i> Spedizioni
     </a>
 
-    <p class="sidebar-section">Finance</p>
+    <p class="sidebar-section">Finanza</p>
     <a href="{{ route('payments.index') }}" class="nav-link {{ request()->routeIs('payments.*') ? 'active' : '' }}">
-        <i class="bi bi-credit-card"></i> Payments
+        <i class="bi bi-credit-card"></i> Pagamenti
         @php $overdueCount = \App\Models\Payment::overdue()->count(); @endphp
         @if($overdueCount > 0)
             <span class="badge bg-danger ms-auto" style="font-size:0.65rem">{{ $overdueCount }}</span>
         @endif
     </a>
     <a href="{{ route('claims.index') }}" class="nav-link {{ request()->routeIs('claims.*') ? 'active' : '' }}">
-        <i class="bi bi-exclamation-triangle"></i> Claims
+        <i class="bi bi-exclamation-triangle"></i> Reclami
     </a>
 
-    <p class="sidebar-section">Communications</p>
+    <p class="sidebar-section">Comunicazioni</p>
     <a href="{{ route('communications.index') }}" class="nav-link {{ request()->routeIs('communications.*') ? 'active' : '' }}">
-        <i class="bi bi-envelope-open"></i> Inbox / Follow-up
+        <i class="bi bi-envelope-open"></i> Posta / Follow-up
         @php $urgentComms = \App\Models\CommunicationTask::open()->urgent()->count(); @endphp
         @if($urgentComms > 0)
             <span class="badge bg-danger ms-auto" style="font-size:0.65rem">{{ $urgentComms }}</span>
         @endif
     </a>
 
-    <p class="sidebar-section">Data</p>
+    <p class="sidebar-section">Dati</p>
     <a href="{{ route('suppliers.index') }}" class="nav-link {{ request()->routeIs('suppliers.*') ? 'active' : '' }}">
-        <i class="bi bi-building"></i> Suppliers
+        <i class="bi bi-building"></i> Fornitori
     </a>
     <a href="{{ route('activity.index') }}" class="nav-link {{ request()->routeIs('activity.*') ? 'active' : '' }}">
-        <i class="bi bi-clock-history"></i> Activity Log
+        <i class="bi bi-clock-history"></i> Registro Attività
     </a>
 
     <div style="height: 2rem;"></div>
@@ -130,7 +130,7 @@ body{background:var(--surface);font-family:'Segoe UI',system-ui,-apple-system,sa
 <div id="topbar">
     <div id="globalSearchWrapper">
         <i class="bi bi-search" style="position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:0.875rem;z-index:1"></i>
-        <input type="text" id="globalSearch" placeholder="Search contracts, shipments, suppliers... (Ctrl+K)" autocomplete="off">
+        <input type="text" id="globalSearch" placeholder="Cerca contratti, spedizioni, fornitori... (Ctrl+K)" autocomplete="off">
         <div id="searchDropdown"></div>
     </div>
 
@@ -139,7 +139,7 @@ body{background:var(--surface);font-family:'Segoe UI',system-ui,-apple-system,sa
         @if($overdueTotal > 0)
         <a href="{{ route('payments.index') }}?tab=overdue" class="btn btn-sm btn-danger d-flex align-items-center gap-1" style="font-size:0.75rem">
             <i class="bi bi-exclamation-circle"></i>
-            {{ $overdueTotal }} Overdue
+            {{ $overdueTotal }} Scaduti
         </a>
         @endif
 
@@ -151,7 +151,7 @@ body{background:var(--surface);font-family:'Segoe UI',system-ui,-apple-system,sa
             <ul class="dropdown-menu dropdown-menu-end">
                 <li>
                     <a class="dropdown-item" href="{{ route('profile.edit') }}">
-                        <i class="bi bi-person me-2"></i>Profile
+                        <i class="bi bi-person me-2"></i>Profilo
                     </a>
                 </li>
                 <li><hr class="dropdown-divider"></li>
@@ -159,7 +159,7 @@ body{background:var(--surface);font-family:'Segoe UI',system-ui,-apple-system,sa
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="dropdown-item text-danger">
-                            <i class="bi bi-box-arrow-right me-2"></i>Logout
+                            <i class="bi bi-box-arrow-right me-2"></i>Esci
                         </button>
                     </form>
                 </li>
@@ -243,15 +243,15 @@ body{background:var(--surface);font-family:'Segoe UI',system-ui,-apple-system,sa
         const results = data.results || {};
         const total = data.total || 0;
         if (total === 0) {
-            searchDropdown.innerHTML = '<div class="search-empty"><i class="bi bi-search" style="font-size:1.5rem;display:block;margin-bottom:0.5rem"></i>No results for "<strong>' + escHtml(q) + '</strong>"</div>';
+            searchDropdown.innerHTML = '<div class="search-empty"><i class="bi bi-search" style="font-size:1.5rem;display:block;margin-bottom:0.5rem"></i>Nessun risultato per "<strong>' + escHtml(q) + '</strong>"</div>';
             searchDropdown.classList.add('show'); return;
         }
         const groupLabels = {
-            contracts: { label: 'Contracts', icon: 'bi-file-earmark-text' },
-            shipments: { label: 'Shipments', icon: 'bi-box-seam' },
-            suppliers: { label: 'Suppliers', icon: 'bi-building' },
-            payments:  { label: 'Payments', icon: 'bi-credit-card' },
-            communications: { label: 'Communications', icon: 'bi-envelope' },
+            contracts: { label: 'Contratti', icon: 'bi-file-earmark-text' },
+            shipments: { label: 'Spedizioni', icon: 'bi-box-seam' },
+            suppliers: { label: 'Fornitori', icon: 'bi-building' },
+            payments:  { label: 'Pagamenti', icon: 'bi-credit-card' },
+            communications: { label: 'Comunicazioni', icon: 'bi-envelope' },
         };
         let html = '';
         for (const [key, items] of Object.entries(results)) {

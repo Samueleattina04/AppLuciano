@@ -11,20 +11,20 @@ class Claim extends Model
     use HasFactory, LogsActivity;
 
     const TYPE_LABELS = [
-        'quality'        => 'Quality',
-        'weight_shortage'=> 'Weight Shortage',
-        'packaging'      => 'Packaging',
-        'price'          => 'Price',
-        'other'          => 'Other',
+        'quality'        => 'Qualità',
+        'weight_shortage'=> 'Calo Peso',
+        'packaging'      => 'Imballaggio',
+        'price'          => 'Prezzo',
+        'other'          => 'Altro',
     ];
 
     const STATUS_LABELS = [
-        'open'         => 'Open',
-        'under_review' => 'Under Review',
-        'accepted'     => 'Accepted',
-        'rejected'     => 'Rejected',
-        'deducted'     => 'Deducted',
-        'closed'       => 'Closed',
+        'open'         => 'Aperto',
+        'under_review' => 'In Revisione',
+        'accepted'     => 'Accettato',
+        'rejected'     => 'Respinto',
+        'deducted'     => 'Dedotto',
+        'closed'       => 'Chiuso',
     ];
 
     protected $fillable = [

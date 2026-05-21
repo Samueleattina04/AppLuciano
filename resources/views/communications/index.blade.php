@@ -1,47 +1,47 @@
 @extends('layouts.app')
-@section('title', 'Communications — SupplyManager')
+@section('title', 'Comunicazioni — SupplyManager')
 @section('content')
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h1 class="page-title mb-0">Inbox / Follow-up</h1>
-        <small class="text-muted">{{ $tasks->total() }} tasks found</small>
+        <h1 class="page-title mb-0">Posta / Follow-up</h1>
+        <small class="text-muted">{{ $tasks->total() }} task trovati</small>
     </div>
     <a href="{{ route('communications.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-1"></i>New Task
+        <i class="bi bi-plus-circle me-1"></i>Nuovo Task
     </a>
 </div>
 
-<!-- TABS -->
+<!-- TAB -->
 <ul class="nav nav-tabs mb-3">
-    <li class="nav-item"><a class="nav-link {{ !request('tab') && !request('status') ? 'active' : '' }}" href="{{ route('communications.index') }}">All</a></li>
+    <li class="nav-item"><a class="nav-link {{ !request('tab') && !request('status') ? 'active' : '' }}" href="{{ route('communications.index') }}">Tutti</a></li>
     <li class="nav-item">
         <a class="nav-link {{ request('tab') === 'open' ? 'active' : '' }}" href="{{ route('communications.index') }}?tab=open">
-            Open <span class="badge bg-secondary ms-1">{{ $statusCounts['open'] }}</span>
+            Aperti <span class="badge bg-secondary ms-1">{{ $statusCounts['open'] }}</span>
         </a>
     </li>
     <li class="nav-item">
         <a class="nav-link {{ request('tab') === 'urgent' ? 'active' : '' }}" href="{{ route('communications.index') }}?tab=urgent">
-            <span class="text-danger">Urgent/High</span> <span class="badge bg-danger ms-1">{{ $statusCounts['urgent'] }}</span>
+            <span class="text-danger">Urgenti/Alti</span> <span class="badge bg-danger ms-1">{{ $statusCounts['urgent'] }}</span>
         </a>
     </li>
-    <li class="nav-item"><a class="nav-link {{ request('status') === 'to_review' ? 'active' : '' }}" href="{{ route('communications.index') }}?status=to_review">To Review</a></li>
-    <li class="nav-item"><a class="nav-link {{ request('status') === 'replied' ? 'active' : '' }}" href="{{ route('communications.index') }}?status=replied">Replied</a></li>
-    <li class="nav-item"><a class="nav-link {{ request('status') === 'closed' ? 'active' : '' }}" href="{{ route('communications.index') }}?status=closed">Closed</a></li>
+    <li class="nav-item"><a class="nav-link {{ request('status') === 'to_review' ? 'active' : '' }}" href="{{ route('communications.index') }}?status=to_review">Da Rivedere</a></li>
+    <li class="nav-item"><a class="nav-link {{ request('status') === 'replied' ? 'active' : '' }}" href="{{ route('communications.index') }}?status=replied">Risposto</a></li>
+    <li class="nav-item"><a class="nav-link {{ request('status') === 'closed' ? 'active' : '' }}" href="{{ route('communications.index') }}?status=closed">Chiuso</a></li>
 </ul>
 
-<!-- FILTERS -->
+<!-- FILTRI -->
 <div class="card mb-3">
     <div class="card-body py-2">
         <form method="GET" class="row g-2 align-items-end">
             @if(request('tab'))<input type="hidden" name="tab" value="{{ request('tab') }}">@endif
             @if(request('status'))<input type="hidden" name="status" value="{{ request('status') }}">@endif
             <div class="col-md-3">
-                <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm" placeholder="Search subject...">
+                <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm" placeholder="Cerca oggetto...">
             </div>
             <div class="col-md-3">
                 <select name="category" class="form-select form-select-sm">
-                    <option value="">All Categories</option>
+                    <option value="">Tutte le Categorie</option>
                     @foreach(\App\Models\CommunicationTask::CATEGORY_LABELS as $k => $v)
                         <option value="{{ $k }}" {{ request('category') == $k ? 'selected' : '' }}>{{ $v }}</option>
                     @endforeach
@@ -49,21 +49,21 @@
             </div>
             <div class="col-md-3">
                 <select name="assigned_to" class="form-select form-select-sm">
-                    <option value="">All Assignees</option>
+                    <option value="">Tutti gli Assegnatari</option>
                     @foreach($users as $u)
                         <option value="{{ $u->id }}" {{ request('assigned_to') == $u->id ? 'selected' : '' }}>{{ $u->name }}</option>
                     @endforeach
                 </select>
             </div>
             <div class="col-auto">
-                <button type="submit" class="btn btn-sm btn-primary">Filter</button>
-                <a href="{{ route('communications.index') }}" class="btn btn-sm btn-outline-secondary">Clear</a>
+                <button type="submit" class="btn btn-sm btn-primary">Filtra</button>
+                <a href="{{ route('communications.index') }}" class="btn btn-sm btn-outline-secondary">Azzera</a>
             </div>
         </form>
     </div>
 </div>
 
-<!-- TASK CARDS -->
+<!-- CARD TASK -->
 <div class="row g-2">
     @forelse($tasks as $task)
     <div class="col-12">
@@ -85,8 +85,8 @@
                         @if($task->due_date)
                         @php $daysLeft = now()->diffInDays($task->due_date, false); @endphp
                         <span class="{{ $daysLeft < 0 ? 'text-danger fw-bold' : '' }}">
-                            <i class="bi bi-calendar me-1"></i>Due: {{ $task->due_date->format('d/m/Y') }}
-                            @if($daysLeft < 0)({{ abs($daysLeft) }}d late)@elseif($daysLeft <= 3)(in {{ $daysLeft }}d)@endif
+                            <i class="bi bi-calendar me-1"></i>Scad.: {{ $task->due_date->format('d/m/Y') }}
+                            @if($daysLeft < 0)({{ abs($daysLeft) }}g di ritardo)@elseif($daysLeft <= 3)(tra {{ $daysLeft }}g)@endif
                         </span>
                         @endif
                         @if($task->assignedUser)
@@ -100,7 +100,7 @@
                     @if(!in_array($task->status, ['replied','closed']))
                     <form method="POST" action="{{ route('communications.mark-replied', $task) }}">
                         @csrf
-                        <button type="submit" class="btn btn-xs btn-sm btn-success" title="Mark Replied">
+                        <button type="submit" class="btn btn-xs btn-sm btn-success" title="Segna Risposto">
                             <i class="bi bi-check2-circle"></i>
                         </button>
                     </form>
@@ -117,7 +117,7 @@
         <div class="card">
             <div class="card-body text-center py-5 text-muted">
                 <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:0.5rem"></i>
-                No communication tasks found.
+                Nessun task di comunicazione trovato.
             </div>
         </div>
     </div>
