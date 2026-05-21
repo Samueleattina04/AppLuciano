@@ -7,9 +7,20 @@ use Illuminate\Http\Request;
 
 class SupplierController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $suppliers = Supplier::withCount('contracts')->orderBy('name')->paginate(20);
+        $query = Supplier::withCount(['contracts', 'shipments']);
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('country', 'like', '%' . $request->search . '%')
+                  ->orWhere('contact_name', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        $suppliers = $query->orderBy('name')->paginate(20);
+
         return view('suppliers.index', compact('suppliers'));
     }
 
@@ -20,21 +31,24 @@ class SupplierController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate([
+        $validated = $request->validate([
             'name'          => 'required|string|max:255',
             'country'       => 'nullable|string|max:100',
+            'contact_name'  => 'nullable|string|max:255',
             'contact_email' => 'nullable|email|max:255',
             'contact_phone' => 'nullable|string|max:50',
             'notes'         => 'nullable|string',
         ]);
 
-        Supplier::create($data);
-        return redirect()->route('suppliers.index')->with('success', 'Fornitore creato con successo.');
+        $supplier = Supplier::create($validated);
+
+        return redirect()->route('suppliers.show', $supplier)
+            ->with('success', 'Supplier created successfully.');
     }
 
     public function show(Supplier $supplier)
     {
-        $supplier->load(['contracts.containers', 'contracts.payments']);
+        $supplier->load(['contracts', 'shipments.contract', 'payments.contract', 'claims']);
         return view('suppliers.show', compact('supplier'));
     }
 
@@ -45,21 +59,26 @@ class SupplierController extends Controller
 
     public function update(Request $request, Supplier $supplier)
     {
-        $data = $request->validate([
+        $validated = $request->validate([
             'name'          => 'required|string|max:255',
             'country'       => 'nullable|string|max:100',
+            'contact_name'  => 'nullable|string|max:255',
             'contact_email' => 'nullable|email|max:255',
             'contact_phone' => 'nullable|string|max:50',
             'notes'         => 'nullable|string',
         ]);
 
-        $supplier->update($data);
-        return redirect()->route('suppliers.show', $supplier)->with('success', 'Fornitore aggiornato.');
+        $supplier->update($validated);
+
+        return redirect()->route('suppliers.show', $supplier)
+            ->with('success', 'Supplier updated successfully.');
     }
 
     public function destroy(Supplier $supplier)
     {
         $supplier->delete();
-        return redirect()->route('suppliers.index')->with('success', 'Fornitore eliminato.');
+
+        return redirect()->route('suppliers.index')
+            ->with('success', 'Supplier deleted.');
     }
 }

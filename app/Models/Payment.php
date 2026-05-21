@@ -3,19 +3,42 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\LogsActivity;
 
 class Payment extends Model
 {
+    use HasFactory, LogsActivity;
+
+    const STATUS_LABELS = [
+        'pending'        => 'Pending',
+        'due_soon'       => 'Due Soon',
+        'overdue'        => 'Overdue',
+        'paid'           => 'Paid',
+        'partially_paid' => 'Partially Paid',
+    ];
+
     protected $fillable = [
-        'contract_id', 'description', 'amount', 'percentage',
-        'due_date', 'paid_date', 'transaction_reference', 'status', 'notes',
+        'contract_id',
+        'shipment_id',
+        'payment_term_id',
+        'supplier_id',
+        'amount_due',
+        'amount_paid',
+        'currency',
+        'due_date',
+        'payment_date',
+        'bank_reference',
+        'status',
+        'notes',
+        'created_by',
     ];
 
     protected $casts = [
-        'due_date'   => 'date',
-        'paid_date'  => 'date',
-        'amount'     => 'decimal:2',
-        'percentage' => 'decimal:2',
+        'due_date'     => 'date',
+        'payment_date' => 'date',
+        'amount_due'   => 'decimal:2',
+        'amount_paid'  => 'decimal:2',
     ];
 
     public function contract()
@@ -23,22 +46,40 @@ class Payment extends Model
         return $this->belongsTo(Contract::class);
     }
 
-    public function isDueSoon(): bool
+    public function shipment()
     {
-        return $this->status === 'pending'
-            && $this->due_date
-            && $this->due_date->diffInDays(now(), false) >= -7
-            && $this->due_date->isFuture();
+        return $this->belongsTo(Shipment::class);
+    }
+
+    public function paymentTerm()
+    {
+        return $this->belongsTo(PaymentTerm::class);
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function scopeDueSoon($query)
     {
-        return $query->where('status', 'pending')
+        return $query->whereNotIn('status', ['paid'])
             ->whereBetween('due_date', [now()->toDateString(), now()->addDays(7)->toDateString()]);
     }
 
     public function scopeOverdue($query)
     {
-        return $query->where('status', 'pending')->where('due_date', '<', now()->toDateString());
+        return $query->whereNotIn('status', ['paid'])
+            ->where('due_date', '<', now()->toDateString());
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::STATUS_LABELS[$this->status] ?? $this->status;
     }
 }

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Container;
-use App\Models\Contract;
 use App\Models\Document;
+use App\Models\Shipment;
+use App\Models\Contract;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -12,43 +12,60 @@ class DocumentController extends Controller
 {
     public function store(Request $request)
     {
-        $request->validate([
-            'documentable_type' => 'required|in:container,contract',
+        $validated = $request->validate([
+            'documentable_type' => 'required|in:shipment,contract',
             'documentable_id'   => 'required|integer',
-            'type'              => 'required|in:bill_of_lading,commercial_invoice,packing_list,certificate_of_origin,other',
+            'document_type'     => 'required|in:bill_of_lading,commercial_invoice,packing_list,certificate_of_origin,phytosanitary_certificate,insurance_certificate,quality_certificate,other',
             'name'              => 'required|string|max:255',
-            'file'              => 'required|file|max:20480',
+            'file'              => 'nullable|file|max:20480',
+            'status'            => 'required|in:missing,received,under_review,approved,rejected',
             'notes'             => 'nullable|string',
         ]);
 
-        $model = $request->documentable_type === 'container'
-            ? Container::findOrFail($request->documentable_id)
-            : Contract::findOrFail($request->documentable_id);
+        $filePath = null;
+        if ($request->hasFile('file')) {
+            $filePath = $request->file('file')->store('documents', 'public');
+        }
 
-        $file = $request->file('file');
-        $path = $file->store('documents', 'local');
+        $documentableType = $validated['documentable_type'] === 'shipment'
+            ? Shipment::class
+            : Contract::class;
 
-        $model->documents()->create([
-            'type'              => $request->type,
-            'name'              => $request->name,
-            'file_path'         => $path,
-            'original_filename' => $file->getClientOriginalName(),
-            'file_size'         => $file->getSize(),
-            'notes'             => $request->notes,
+        Document::create([
+            'documentable_type' => $documentableType,
+            'documentable_id'   => $validated['documentable_id'],
+            'document_type'     => $validated['document_type'],
+            'name'              => $validated['name'],
+            'file_path'         => $filePath,
+            'status'            => $validated['status'],
+            'notes'             => $validated['notes'] ?? null,
+            'uploaded_by'       => auth()->id(),
         ]);
 
-        return back()->with('success', 'Documento caricato con successo.');
+        return back()->with('success', 'Document uploaded successfully.');
     }
 
     public function download(Document $document)
     {
-        return Storage::disk('local')->download($document->file_path, $document->original_filename);
+        if (!$document->file_path) {
+            return back()->with('error', 'No file attached to this document.');
+        }
+
+        if (!Storage::disk('public')->exists($document->file_path)) {
+            return back()->with('error', 'File not found on server.');
+        }
+
+        return Storage::disk('public')->download($document->file_path, $document->name);
     }
 
     public function destroy(Document $document)
     {
-        Storage::disk('local')->delete($document->file_path);
+        if ($document->file_path) {
+            Storage::disk('public')->delete($document->file_path);
+        }
+
         $document->delete();
-        return back()->with('success', 'Documento eliminato.');
+
+        return back()->with('success', 'Document deleted.');
     }
 }

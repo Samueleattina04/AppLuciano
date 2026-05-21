@@ -1,109 +1,131 @@
 @extends('layouts.app')
-@section('title', 'Pagamenti')
-
+@section('title', 'Payments — SupplyManager')
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <div class="d-flex gap-2">
-        <a href="{{ route('payments.index') }}" class="btn btn-sm {{ !request('status') ? 'btn-dark' : 'btn-outline-secondary' }}">Tutti</a>
-        <a href="{{ route('payments.index', ['status' => 'pending']) }}" class="btn btn-sm {{ request('status') === 'pending' ? 'btn-warning text-dark' : 'btn-outline-warning' }}">In Attesa</a>
-        <a href="{{ route('payments.index', ['status' => 'overdue']) }}" class="btn btn-sm {{ request('status') === 'overdue' ? 'btn-danger' : 'btn-outline-danger' }}">Scaduti</a>
-        <a href="{{ route('payments.index', ['status' => 'paid']) }}" class="btn btn-sm {{ request('status') === 'paid' ? 'btn-success' : 'btn-outline-success' }}">Pagati</a>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="page-title mb-0">Payments</h1>
+        <small class="text-muted">{{ $payments->total() }} payments found</small>
     </div>
-    <a href="{{ route('payments.create') }}" class="btn btn-primary btn-sm">
-        <i class="bi bi-plus-lg me-1"></i>Nuovo Pagamento
+    <a href="{{ route('payments.create') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>New Payment
     </a>
 </div>
 
+<!-- FILTER TABS -->
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><a class="nav-link {{ !request('tab') && !request('status') ? 'active' : '' }}" href="{{ route('payments.index') }}">All</a></li>
+    <li class="nav-item">
+        <a class="nav-link {{ request('tab') === 'overdue' ? 'active' : '' }}" href="{{ route('payments.index') }}?tab=overdue">
+            <span class="text-danger">Overdue</span>
+            @if($statusCounts['overdue'] > 0)<span class="badge bg-danger ms-1">{{ $statusCounts['overdue'] }}</span>@endif
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {{ request('tab') === 'due_soon' ? 'active' : '' }}" href="{{ route('payments.index') }}?tab=due_soon">
+            Due Soon <span class="badge bg-warning text-dark ms-1">{{ $statusCounts['due_soon'] }}</span>
+        </a>
+    </li>
+    <li class="nav-item"><a class="nav-link {{ request('status') === 'pending' ? 'active' : '' }}" href="{{ route('payments.index') }}?status=pending">Pending</a></li>
+    <li class="nav-item"><a class="nav-link {{ request('status') === 'paid' ? 'active' : '' }}" href="{{ route('payments.index') }}?status=paid">Paid <span class="badge bg-success ms-1">{{ $statusCounts['paid'] }}</span></a></li>
+</ul>
+
+<!-- SEARCH -->
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="GET" class="d-flex gap-2">
+            @if(request('tab')) <input type="hidden" name="tab" value="{{ request('tab') }}"> @endif
+            @if(request('status')) <input type="hidden" name="status" value="{{ request('status') }}"> @endif
+            <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm" placeholder="Search contract, supplier, reference..." style="max-width:400px">
+            <button type="submit" class="btn btn-sm btn-primary">Search</button>
+        </form>
+    </div>
+</div>
+
+<!-- TABLE -->
 <div class="card">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead><tr>
-                    <th>Contratto</th>
-                    <th>Fornitore</th>
-                    <th>Descrizione</th>
-                    <th class="text-end">Importo</th>
-                    <th class="text-end">%</th>
-                    <th>Scadenza</th>
-                    <th>Pagato il</th>
-                    <th>Riferimento</th>
-                    <th>Stato</th>
-                    <th></th>
-                </tr></thead>
+            <table class="table table-supply mb-0">
+                <thead>
+                    <tr>
+                        <th>Contract</th>
+                        <th>Supplier</th>
+                        <th>Shipment</th>
+                        <th class="text-end">Amount Due</th>
+                        <th class="text-end">Paid</th>
+                        <th>Due Date</th>
+                        <th>Paid Date</th>
+                        <th>Reference</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
                 <tbody>
                     @forelse($payments as $p)
-                    <tr class="{{ $p->status === 'overdue' ? 'table-danger' : '' }}">
-                        <td><a href="{{ route('contracts.show', $p->contract) }}" class="text-decoration-none fw-semibold">{{ $p->contract->contract_number }}</a></td>
-                        <td>{{ $p->contract->supplier->name }}</td>
-                        <td>{{ $p->description }}</td>
-                        <td class="text-end fw-semibold">{{ number_format($p->amount, 2) }} {{ $p->contract->currency }}</td>
-                        <td class="text-end">{{ $p->percentage ? $p->percentage . '%' : '—' }}</td>
-                        <td>{{ $p->due_date->format('d/m/Y') }}</td>
-                        <td>{{ $p->paid_date ? $p->paid_date->format('d/m/Y') : '—' }}</td>
-                        <td>{{ $p->transaction_reference ?? '—' }}</td>
+                    <tr class="{{ $p->status === 'overdue' ? 'row-overdue' : '' }}">
                         <td>
-                            @if($p->status === 'paid')
-                                <span class="badge bg-success badge-status">Pagato</span>
-                            @elseif($p->status === 'overdue')
-                                <span class="badge bg-danger badge-status">Scaduto</span>
-                            @else
-                                <span class="badge bg-warning text-dark badge-status">In Attesa</span>
+                            @if($p->contract)
+                            <a href="{{ route('contracts.show', $p->contract) }}" class="text-decoration-none fw-bold" style="font-size:0.85rem">{{ $p->contract->contract_number }}</a>
+                            @else —
                             @endif
                         </td>
+                        <td style="font-size:0.85rem">{{ $p->supplier->name ?? '—' }}</td>
                         <td>
-                            <div class="d-flex gap-1">
-                                @if($p->status !== 'paid')
-                                <button type="button" class="btn btn-outline-success btn-action" data-bs-toggle="modal" data-bs-target="#markPaidModal{{ $p->id }}">
-                                    <i class="bi bi-check2"></i>
-                                </button>
-                                @endif
-                                <a href="{{ route('payments.edit', $p) }}" class="btn btn-outline-secondary btn-action"><i class="bi bi-pencil"></i></a>
-                                <form method="POST" action="{{ route('payments.destroy', $p) }}" onsubmit="return confirm('Eliminare pagamento?')">
-                                    @csrf @method('DELETE')
-                                    <button class="btn btn-outline-danger btn-action"><i class="bi bi-trash"></i></button>
-                                </form>
-                            </div>
-
-                            @if($p->status !== 'paid')
-                            <div class="modal fade" id="markPaidModal{{ $p->id }}" tabindex="-1">
-                                <div class="modal-dialog modal-sm">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">Segna come Pagato</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <form method="POST" action="{{ route('payments.mark-paid', $p) }}">
-                                            @csrf
-                                            <div class="modal-body">
-                                                <div class="mb-2">
-                                                    <label class="form-label small fw-semibold">Data Pagamento</label>
-                                                    <input type="date" name="paid_date" class="form-control form-control-sm" value="{{ now()->format('Y-m-d') }}" required>
-                                                </div>
-                                                <div>
-                                                    <label class="form-label small fw-semibold">Riferimento Transazione</label>
-                                                    <input type="text" name="transaction_reference" class="form-control form-control-sm" placeholder="es. WIRE-20240523">
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>
-                                                <button type="submit" class="btn btn-sm btn-success">Conferma</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
+                            @if($p->shipment)
+                            <a href="{{ route('shipments.show', $p->shipment) }}" style="font-size:0.8rem">{{ $p->shipment->shipment_code }}</a>
+                            @else <span class="text-muted">—</span>
                             @endif
+                        </td>
+                        <td class="text-end">
+                            <strong>{{ number_format($p->amount_due, 2) }}</strong>
+                            <div class="text-muted-sm">{{ $p->currency }}</div>
+                        </td>
+                        <td class="text-end">{{ number_format($p->amount_paid, 2) }}</td>
+                        <td>
+                            @if($p->due_date)
+                            @php $daysLeft = now()->startOfDay()->diffInDays($p->due_date->startOfDay(), false); @endphp
+                            <span class="{{ $daysLeft < 0 ? 'text-danger fw-bold' : ($daysLeft <= 7 ? 'text-warning fw-bold' : '') }}">
+                                {{ $p->due_date->format('d/m/Y') }}
+                            </span>
+                            @if($daysLeft < 0 && $p->status !== 'paid')
+                            <div class="text-muted-sm text-danger">{{ abs($daysLeft) }}d overdue</div>
+                            @elseif($daysLeft >= 0 && $daysLeft <= 7 && $p->status !== 'paid')
+                            <div class="text-muted-sm">in {{ $daysLeft }}d</div>
+                            @endif
+                            @else —
+                            @endif
+                        </td>
+                        <td>{{ $p->payment_date?->format('d/m/Y') ?? '—' }}</td>
+                        <td style="font-size:0.8rem">{{ $p->bank_reference ?? '—' }}</td>
+                        <td class="text-center">
+                            <span class="badge-status status-{{ $p->status }}">{{ $p->status_label }}</span>
+                        </td>
+                        <td class="text-end">
+                            <div class="d-flex gap-1 justify-content-end">
+                                @if($p->status !== 'paid')
+                                <form method="POST" action="{{ route('payments.mark-paid', $p) }}">
+                                    @csrf
+                                    <button type="submit" class="btn btn-xs btn-sm btn-success" title="Mark as Paid">
+                                        <i class="bi bi-check-circle"></i>
+                                    </button>
+                                </form>
+                                @endif
+                                <a href="{{ route('payments.edit', $p) }}" class="btn btn-xs btn-sm btn-outline-secondary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="10" class="text-center text-muted py-4">Nessun pagamento trovato</td></tr>
+                    <tr><td colspan="10" class="text-center py-4 text-muted">No payments found.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
     </div>
-    @if($payments->hasPages())
-    <div class="card-footer bg-white">{{ $payments->links() }}</div>
-    @endif
 </div>
+
+<div class="mt-3">{{ $payments->withQueryString()->links() }}</div>
+
 @endsection

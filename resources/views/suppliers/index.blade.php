@@ -1,48 +1,48 @@
 @extends('layouts.app')
-@section('title', 'Fornitori')
-
+@section('title', 'Suppliers — SupplyManager')
 @section('content')
-<div class="d-flex justify-content-end mb-3">
-    <a href="{{ route('suppliers.create') }}" class="btn btn-primary btn-sm">
-        <i class="bi bi-plus-lg me-1"></i>Nuovo Fornitore
-    </a>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title mb-0">Suppliers</h1>
+    <a href="{{ route('suppliers.create') }}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>New Supplier</a>
 </div>
-
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="GET" class="d-flex gap-2">
+            <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm" placeholder="Search name, country..." style="max-width:300px">
+            <button type="submit" class="btn btn-sm btn-primary">Search</button>
+        </form>
+    </div>
+</div>
 <div class="card">
     <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead><tr>
-                    <th>Nome</th><th>Paese</th><th>Email</th><th>Telefono</th><th class="text-center">Contratti</th><th></th>
-                </tr></thead>
-                <tbody>
-                    @forelse($suppliers as $s)
-                    <tr>
-                        <td class="fw-semibold">{{ $s->name }}</td>
-                        <td>{{ $s->country ?? '—' }}</td>
-                        <td>{{ $s->contact_email ?? '—' }}</td>
-                        <td>{{ $s->contact_phone ?? '—' }}</td>
-                        <td class="text-center"><span class="badge bg-info text-dark">{{ $s->contracts_count }}</span></td>
-                        <td>
-                            <div class="d-flex gap-1">
-                                <a href="{{ route('suppliers.show', $s) }}" class="btn btn-outline-primary btn-action"><i class="bi bi-eye"></i></a>
-                                <a href="{{ route('suppliers.edit', $s) }}" class="btn btn-outline-secondary btn-action"><i class="bi bi-pencil"></i></a>
-                                <form method="POST" action="{{ route('suppliers.destroy', $s) }}" onsubmit="return confirm('Eliminare questo fornitore?')">
-                                    @csrf @method('DELETE')
-                                    <button class="btn btn-outline-danger btn-action"><i class="bi bi-trash"></i></button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr><td colspan="6" class="text-center text-muted py-4">Nessun fornitore</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+        <table class="table table-supply mb-0">
+            <thead>
+                <tr><th>Supplier</th><th>Country</th><th>Contact</th><th class="text-center">Contracts</th><th class="text-center">Shipments</th><th class="text-end">Actions</th></tr>
+            </thead>
+            <tbody>
+                @forelse($suppliers as $s)
+                <tr>
+                    <td><a href="{{ route('suppliers.show', $s) }}" class="fw-bold text-decoration-none">{{ $s->name }}</a></td>
+                    <td>{{ $s->country ?? '—' }}</td>
+                    <td>
+                        @if($s->contact_name)<div style="font-size:0.85rem">{{ $s->contact_name }}</div>@endif
+                        @if($s->contact_email)<div class="text-muted-sm">{{ $s->contact_email }}</div>@endif
+                    </td>
+                    <td class="text-center">{{ $s->contracts_count }}</td>
+                    <td class="text-center">{{ $s->shipments_count }}</td>
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ route('suppliers.show', $s) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-eye"></i></a>
+                            <a href="{{ route('suppliers.edit', $s) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="6" class="text-center py-4 text-muted">No suppliers found.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
-    @if($suppliers->hasPages())
-    <div class="card-footer bg-white">{{ $suppliers->links() }}</div>
-    @endif
 </div>
+<div class="mt-3">{{ $suppliers->withQueryString()->links() }}</div>
 @endsection
