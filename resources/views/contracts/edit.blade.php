@@ -101,9 +101,8 @@
                             <div class="form-text" id="eur_preview"></div>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-semibold">Valore Totale * <span class="text-muted">(valuta originale)</span></label>
-                            <input type="number" id="total_value" name="total_value" step="0.01" class="form-control"
-                                value="{{ old('total_value', $contract->total_value) }}" required>
+                            <label class="form-label fw-semibold">Valore Totale <span class="text-muted">(calcolato)</span></label>
+                            <div id="total_value_display" class="form-control bg-light fw-semibold text-end" style="min-height:38px">{{ number_format($contract->total_value, 2, ',', '.') }}</div>
                             <div class="form-text" id="total_eur_preview"></div>
                         </div>
                         <div class="col-md-3">
@@ -182,13 +181,15 @@
 const UOM_FACTORS = {kg:1,MT:1000,t:1000,lb:0.453592,lbs:0.453592,bag50:50,bag25:25,sacchi:50};
 function fmt(n){return n.toLocaleString('it-IT',{minimumFractionDigits:0,maximumFractionDigits:2});}
 function updatePreviews(){
-    const qty   = parseFloat(document.getElementById('qty').value)||0;
-    const kpu   = parseFloat(document.getElementById('kg_per_unit').value)||1;
-    const rate  = parseFloat(document.getElementById('exchange_rate').value)||1;
-    const total = parseFloat(document.getElementById('total_value').value)||0;
-    const totalKg  = qty*kpu;
+    const qty     = parseFloat(document.getElementById('qty').value)||0;
+    const kpu     = parseFloat(document.getElementById('kg_per_unit').value)||1;
+    const price   = parseFloat(document.getElementById('unit_price').value)||0;
+    const rate    = parseFloat(document.getElementById('exchange_rate').value)||1;
+    const totalKg = qty*kpu;
+    const total   = qty*price;
     const totalEur = total*rate;
     document.getElementById('qty_kg_preview').textContent = totalKg ? '≈ '+fmt(totalKg)+' kg totali' : '';
+    document.getElementById('total_value_display').textContent = (qty&&price) ? fmt(total) : '—';
     document.getElementById('total_eur_preview').textContent = totalEur && rate!==1 ? '≈ € '+fmt(totalEur) : '';
 }
 document.getElementById('uom').addEventListener('change',function(){
@@ -196,16 +197,8 @@ document.getElementById('uom').addEventListener('change',function(){
     if(s!==undefined) document.getElementById('kg_per_unit').value=s;
     updatePreviews();
 });
-['qty','kg_per_unit','unit_price','exchange_rate','total_value'].forEach(id=>{
+['qty','kg_per_unit','unit_price','exchange_rate'].forEach(id=>{
     document.getElementById(id).addEventListener('input',updatePreviews);
-});
-['qty','unit_price'].forEach(id=>{
-    document.getElementById(id).addEventListener('input',function(){
-        const q=parseFloat(document.getElementById('qty').value)||0;
-        const p=parseFloat(document.getElementById('unit_price').value)||0;
-        if(q&&p) document.getElementById('total_value').value=(q*p).toFixed(2);
-        updatePreviews();
-    });
 });
 updatePreviews();
 </script>

@@ -55,11 +55,24 @@ class PaymentController extends Controller
 
         $contractsJson = $this->buildContractsJson($contracts);
 
-        $selectedContract = $request->filled('contract_id')
-            ? $contracts->firstWhere('id', $request->contract_id)
-            : null;
+        $selectedContract = null;
+        $selectedShipment = null;
+        $proposedAmount   = null;
 
-        return view('payments.create', compact('contracts', 'contractsJson', 'selectedContract'));
+        if ($request->filled('shipment_id')) {
+            $selectedShipment = \App\Models\Shipment::with(['contract.supplier', 'payments'])->find($request->shipment_id);
+            if ($selectedShipment) {
+                $selectedContract = $selectedShipment->contract;
+                // Proponi: valore spedizione - già pagato su questa spedizione
+                $shipmentValue  = (float)$selectedShipment->quantity_shipped * (float)($selectedShipment->contract?->unit_price ?? 0);
+                $alreadyPaid    = $selectedShipment->payments->whereIn('status', ['paid', 'partially_paid'])->sum('amount_paid');
+                $proposedAmount = max(0, round($shipmentValue - $alreadyPaid, 2));
+            }
+        } elseif ($request->filled('contract_id')) {
+            $selectedContract = $contracts->firstWhere('id', $request->contract_id);
+        }
+
+        return view('payments.create', compact('contracts', 'contractsJson', 'selectedContract', 'selectedShipment', 'proposedAmount'));
     }
 
     public function store(Request $request)

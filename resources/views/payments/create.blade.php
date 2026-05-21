@@ -130,10 +130,19 @@
                 <div class="card-header">Importi, Date &amp; Riferimenti Bancari</div>
                 <div class="card-body">
                     <div class="row g-3">
+                        @if($proposedAmount !== null && !old('amount_due'))
+                        <div class="col-12">
+                            <div class="alert alert-info py-2 px-3 mb-0" style="font-size:0.85rem">
+                                <i class="bi bi-lightbulb me-1"></i>
+                                <strong>Importo suggerito:</strong> {{ number_format($proposedAmount, 2, ',', '.') }} {{ $selectedContract?->currency ?? '' }}
+                                — calcolato come valore spedizione meno già pagato.
+                            </div>
+                        </div>
+                        @endif
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">Importo Dovuto *</label>
                             <input type="number" name="amount_due" step="0.01" class="form-control @error('amount_due') is-invalid @enderror"
-                                value="{{ old('amount_due') }}" required>
+                                value="{{ old('amount_due', $proposedAmount) }}" required>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">Importo Pagato</label>
@@ -346,7 +355,14 @@ document.querySelectorAll('input[name="payment_type"]').forEach(radio => {
 // ─── Init ─────────────────────────────────────────────────────────────────────
 if (contractSel.value) onContractChange();
 
-@if(old('shipment_id'))
+@if($selectedShipment)
+// Pre-select shipment passed via URL context
+(function(){
+    const preShipId = {{ $selectedShipment->id }};
+    const preShip = Object.values(CONTRACTS).flatMap(c=>c.shipments).find(s=>s.id===preShipId);
+    if (preShip) selectShipment(preShip);
+})();
+@elseif(old('shipment_id'))
 // Re-populate from old() after validation error
 const oldShip = Object.values(CONTRACTS).flatMap(c=>c.shipments).find(s=>s.id=={{old('shipment_id')}});
 if (oldShip) selectShipment(oldShip);

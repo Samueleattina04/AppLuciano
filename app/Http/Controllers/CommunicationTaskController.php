@@ -55,10 +55,16 @@ class CommunicationTaskController extends Controller
     public function create(Request $request)
     {
         $contracts = Contract::with('supplier')->orderBy('contract_number')->get();
-        $shipments = Shipment::with('contract')->orderBy('shipment_code')->get();
-        $users = User::orderBy('name')->get();
+        $shipments = Shipment::with(['contract.supplier'])->orderBy('shipment_code')->get();
+        $users     = User::orderBy('name')->get();
 
-        return view('communications.create', compact('contracts', 'shipments', 'users'));
+        // Risolve contesto da query string
+        $ctx = $this->resolveContext($request, $contracts, $shipments);
+
+        return view('communications.create', array_merge(
+            compact('contracts', 'shipments', 'users'),
+            $ctx
+        ));
     }
 
     public function store(Request $request)
@@ -137,5 +143,60 @@ class CommunicationTaskController extends Controller
     {
         $communication->update(['status' => 'replied']);
         return back()->with('success', 'Task segnato come risposto.');
+    }
+
+    // ─── Risolve i valori di precompilazione dal contesto (URL params) ────────
+    private function resolveContext(Request $request, $contracts, $shipments): array
+    {
+        $selectedContract = null;
+        $selectedShipment = null;
+        $defaultSubject   = old('subject', '');
+        $defaultSender    = old('sender', '');
+        $defaultRecipient = old('recipient', '');
+        $defaultCategory  = old('category', 'supplier_request');
+
+        if ($request->filled('shipment_id')) {
+            $selectedShipment = $shipments->firstWhere('id', $request->shipment_id);
+            if ($selectedShipment) {
+                if (!$selectedContract && $selectedShipment->contract) {
+                    $selectedContract = $selectedShipment->contract;
+                }
+                if (!$defaultSubject) {
+                    $label = $selectedShipment->shipment_code;
+                    if ($selectedShipment->container_number) $label .= ' ' . $selectedShipment->container_number;
+                    $defaultSubject = 'Follow-up spedizione ' . $label;
+                }
+            }
+        }
+
+        if (!$selectedContract && $request->filled('contract_id')) {
+            $selectedContract = $contracts->firstWhere('id', $request->contract_id);
+            if ($selectedContract && !$defaultSubject) {
+                $defaultSubject = 'Follow-up contratto ' . $selectedContract->contract_number;
+            }
+        }
+
+        // Auto-fill destinatario dai contatti del fornitore
+        $supplier = $selectedShipment?->contract?->supplier
+            ?? $selectedContract?->supplier
+            ?? null;
+
+        if ($supplier && !$defaultRecipient) {
+            if ($supplier->contact_email) {
+                $defaultRecipient = $supplier->contact_name
+                    ? $supplier->contact_name . ' <' . $supplier->contact_email . '>'
+                    : $supplier->contact_email;
+            }
+        }
+
+        // Categoria di default da contesto
+        if ($request->filled('category')) {
+            $defaultCategory = $request->category;
+        }
+
+        return compact(
+            'selectedContract', 'selectedShipment',
+            'defaultSubject', 'defaultSender', 'defaultRecipient', 'defaultCategory'
+        );
     }
 }

@@ -67,12 +67,13 @@ class ContractController extends Controller
             'shipment_window_start'    => 'nullable|date',
             'shipment_window_end'      => 'nullable|date',
             'payment_terms_description'=> 'nullable|string',
-            'total_value'              => 'required|numeric|min:0',
             'notes'                    => 'nullable|string',
             'status'                   => 'required|in:draft,confirmed,partially_shipped,completed,cancelled',
         ]);
 
-        $validated['created_by'] = auth()->id();
+        // Calcolato automaticamente: non accettare dal form
+        $validated['total_value'] = round($validated['quantity_contracted'] * $validated['unit_price'], 2);
+        $validated['created_by']  = auth()->id();
 
         $contract = Contract::create($validated);
 
@@ -87,7 +88,11 @@ class ContractController extends Controller
             'product',
             'creator',
             'shipments.supplier',
+            'shipments.payments',
+            'shipments.communicationTasks',
+            'shipments.claims',
             'payments.supplier',
+            'payments.shipment',
             'paymentTerms',
             'claims.supplier',
             'communicationTasks.assignedUser',
@@ -132,10 +137,11 @@ class ContractController extends Controller
             'shipment_window_start'    => 'nullable|date',
             'shipment_window_end'      => 'nullable|date',
             'payment_terms_description'=> 'nullable|string',
-            'total_value'              => 'required|numeric|min:0',
             'notes'                    => 'nullable|string',
             'status'                   => 'required|in:draft,confirmed,partially_shipped,completed,cancelled',
         ]);
+
+        $validated['total_value'] = round($validated['quantity_contracted'] * $validated['unit_price'], 2);
 
         $contract->update($validated);
 
@@ -146,7 +152,6 @@ class ContractController extends Controller
     public function destroy(Contract $contract)
     {
         $contract->delete();
-
         return redirect()->route('contracts.index')
             ->with('success', 'Contratto eliminato.');
     }

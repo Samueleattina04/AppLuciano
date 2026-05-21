@@ -33,6 +33,34 @@
             <button type="submit" class="btn btn-sm btn-primary">Aggiorna</button>
         </form>
         <a href="{{ route('shipments.edit', $shipment) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+        <div class="dropdown">
+            <button class="btn btn-sm btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-plus-circle me-1"></i>Aggiungi
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" href="{{ route('payments.create') }}?shipment_id={{ $shipment->id }}">
+                        <i class="bi bi-cash me-2 text-success"></i>Nuovo Pagamento
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{{ route('communications.create') }}?shipment_id={{ $shipment->id }}">
+                        <i class="bi bi-chat-dots me-2 text-info"></i>Nuovo Follow-up
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{{ route('claims.create') }}?shipment_id={{ $shipment->id }}">
+                        <i class="bi bi-exclamation-triangle me-2 text-danger"></i>Nuovo Reclamo
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item" href="{{ route('contracts.show', $shipment->contract) }}">
+                        <i class="bi bi-file-text me-2 text-secondary"></i>Vai al Contratto
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>
 
@@ -366,7 +394,7 @@ $currentOrder = \App\Models\Shipment::STATUS_ORDER[$shipment->status] ?? 0;
     <div class="tab-pane fade" id="pay-tab">
         <div class="d-flex justify-content-between mb-3">
             <h6>Pagamenti</h6>
-            <a href="{{ route('payments.create') }}?contract_id={{ $shipment->contract_id }}" class="btn btn-sm btn-primary">+ Nuovo Pagamento</a>
+            <a href="{{ route('payments.create') }}?shipment_id={{ $shipment->id }}" class="btn btn-sm btn-primary">+ Nuovo Pagamento</a>
         </div>
         <div class="table-responsive">
             <table class="table table-supply">

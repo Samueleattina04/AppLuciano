@@ -33,7 +33,31 @@ class ClaimController extends Controller
         $suppliers = Supplier::orderBy('name')->get();
         $shipments = Shipment::with('contract')->orderBy('shipment_code')->get();
 
-        return view('claims.create', compact('contracts', 'suppliers', 'shipments'));
+        $selectedContract = $request->filled('contract_id')
+            ? $contracts->firstWhere('id', $request->contract_id)
+            : null;
+
+        $selectedShipment = $request->filled('shipment_id')
+            ? $shipments->firstWhere('id', $request->shipment_id)
+            : null;
+
+        // Supplier auto-fill: prende dal contratto o dalla spedizione
+        if (!$selectedContract && $selectedShipment?->contract) {
+            $selectedContract = $selectedShipment->contract;
+        }
+        $autoSupplierId = old('supplier_id',
+            $selectedShipment?->contract?->supplier_id
+            ?? $selectedContract?->supplier_id
+        );
+
+        // Valuta di default dal contratto
+        $defaultCurrency = old('currency', $selectedContract?->currency ?? 'USD');
+
+        return view('claims.create', compact(
+            'contracts', 'suppliers', 'shipments',
+            'selectedContract', 'selectedShipment',
+            'autoSupplierId', 'defaultCurrency'
+        ));
     }
 
     public function store(Request $request)

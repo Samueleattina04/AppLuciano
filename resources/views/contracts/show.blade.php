@@ -9,10 +9,34 @@
         <h1 class="page-title mb-0">{{ $contract->contract_number }}</h1>
         <small class="text-muted">{{ $contract->supplier->name ?? '' }} · {{ $contract->product->name ?? '' }}</small>
     </div>
-    <div class="ms-auto d-flex gap-2">
-        <a href="{{ route('shipments.create') }}?contract_id={{ $contract->id }}" class="btn btn-sm btn-success">
-            <i class="bi bi-plus me-1"></i>Nuova Spedizione
-        </a>
+    <div class="ms-auto d-flex gap-2 flex-wrap align-items-center">
+        <div class="dropdown">
+            <button class="btn btn-sm btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-plus-circle me-1"></i>Aggiungi
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" href="{{ route('shipments.create') }}?contract_id={{ $contract->id }}">
+                        <i class="bi bi-box-seam me-2 text-success"></i>Nuova Spedizione
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{{ route('payments.create') }}?contract_id={{ $contract->id }}">
+                        <i class="bi bi-cash me-2 text-primary"></i>Nuovo Pagamento
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{{ route('communications.create') }}?contract_id={{ $contract->id }}">
+                        <i class="bi bi-chat-dots me-2 text-info"></i>Nuovo Follow-up
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{{ route('claims.create') }}?contract_id={{ $contract->id }}">
+                        <i class="bi bi-exclamation-triangle me-2 text-danger"></i>Nuovo Reclamo
+                    </a>
+                </li>
+            </ul>
+        </div>
         <a href="{{ route('contracts.edit', $contract) }}" class="btn btn-sm btn-outline-primary">
             <i class="bi bi-pencil me-1"></i>Modifica
         </a>
@@ -135,31 +159,114 @@
 
     <!-- TAB SPEDIZIONI -->
     <div class="tab-pane fade" id="shipments-tab">
-        <div class="d-flex justify-content-between mb-3">
-            <h6 class="mb-0">Spedizioni</h6>
-            <a href="{{ route('shipments.create') }}?contract_id={{ $contract->id }}" class="btn btn-sm btn-success">+ Nuova Spedizione</a>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">Spedizioni <span class="text-muted fw-normal fs-6">({{ $contract->shipments->count() }})</span></h6>
+            <a href="{{ route('shipments.create') }}?contract_id={{ $contract->id }}" class="btn btn-sm btn-success">
+                <i class="bi bi-plus-circle me-1"></i>Nuova Spedizione
+            </a>
         </div>
-        <div class="table-responsive">
-            <table class="table table-supply">
-                <thead><tr><th>N° Spedizione</th><th>Container</th><th>Nave</th><th>ETD</th><th>ETA</th><th>Qtà</th><th>Stato</th><th></th></tr></thead>
-                <tbody>
-                    @forelse($contract->shipments as $s)
-                    <tr>
-                        <td><a href="{{ route('shipments.show', $s) }}" class="fw-bold">{{ $s->shipment_code }}</a></td>
-                        <td>{{ $s->container_number ?? '—' }}</td>
-                        <td>{{ $s->vessel_name ?? '—' }}</td>
-                        <td>{{ $s->etd?->format('d/m/Y') ?? '—' }}</td>
-                        <td>{{ $s->eta?->format('d/m/Y') ?? '—' }}</td>
-                        <td>{{ number_format($s->quantity_shipped, 0) }} {{ $contract->unit_of_measure }}</td>
-                        <td><span class="badge-status status-{{ $s->status }}">{{ $s->status_label }}</span></td>
-                        <td><a href="{{ route('shipments.show', $s) }}" class="btn btn-xs btn-outline-primary btn-sm">Vedi</a></td>
-                    </tr>
-                    @empty
-                    <tr><td colspan="8" class="text-center text-muted py-3">Nessuna spedizione ancora.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
+        @php
+            $unitPrice = (float)$contract->unit_price;
+            $currency  = $contract->currency;
+        @endphp
+        @forelse($contract->shipments->sortByDesc('eta') as $s)
+        @php
+            $shipVal   = round((float)$s->quantity_shipped * $unitPrice, 2);
+            $paidAmt   = $s->payments->whereIn('status', ['paid','partially_paid'])->sum('amount_paid');
+            $pendingAmt= $s->payments->where('status','pending')->sum('amount_due');
+            $paymCount = $s->payments->count();
+            $commCount = $s->communicationTasks->count();
+            $claimCount= $s->claims->count();
+        @endphp
+        <div class="card mb-3 border-start border-4 border-{{ $s->status === 'arrived' ? 'success' : ($s->status === 'in_transit' ? 'info' : ($s->status === 'closed' ? 'secondary' : 'warning')) }}">
+            <div class="card-body py-2 px-3">
+                <div class="row align-items-center g-2">
+                    {{-- Colonna 1: codice + stato --}}
+                    <div class="col-md-3">
+                        <a href="{{ route('shipments.show', $s) }}" class="fw-bold text-decoration-none fs-6">{{ $s->shipment_code }}</a>
+                        <div class="mt-1">
+                            <span class="badge-status status-{{ $s->status }}">{{ $s->status_label }}</span>
+                        </div>
+                        @if($s->container_number)
+                            <small class="text-muted d-block mt-1"><i class="bi bi-box-seam me-1"></i>{{ $s->container_number }}</small>
+                        @endif
+                        @if($s->vessel_name)
+                            <small class="text-muted d-block"><i class="bi bi-water me-1"></i>{{ $s->vessel_name }}</small>
+                        @endif
+                    </div>
+                    {{-- Colonna 2: date + quantità --}}
+                    <div class="col-md-2 text-center">
+                        <div class="small text-muted">ETD / ETA</div>
+                        <div class="small">{{ $s->etd?->format('d/m/Y') ?? '—' }} → {{ $s->eta?->format('d/m/Y') ?? '—' }}</div>
+                        <div class="mt-1 small fw-semibold">{{ number_format($s->quantity_shipped, 0) }} {{ $contract->unit_of_measure }}</div>
+                    </div>
+                    {{-- Colonna 3: valore e pagamenti --}}
+                    <div class="col-md-3">
+                        <div class="small text-muted">Valore stimato</div>
+                        <div class="fw-semibold">{{ number_format($shipVal, 2, ',', '.') }} {{ $currency }}</div>
+                        @if($paymCount)
+                        <div class="mt-1">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                <i class="bi bi-check-circle me-1"></i>Pagato: {{ number_format($paidAmt, 2, ',', '.') }}
+                            </span>
+                            @if($pendingAmt > 0)
+                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle ms-1">
+                                In attesa: {{ number_format($pendingAmt, 2, ',', '.') }}
+                            </span>
+                            @endif
+                        </div>
+                        @else
+                        <div class="small text-muted mt-1">Nessun pagamento</div>
+                        @endif
+                        @if($commCount || $claimCount)
+                        <div class="mt-1 d-flex gap-1">
+                            @if($commCount)
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                                <i class="bi bi-chat me-1"></i>{{ $commCount }} follow-up
+                            </span>
+                            @endif
+                            @if($claimCount)
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                                <i class="bi bi-exclamation-triangle me-1"></i>{{ $claimCount }} reclami
+                            </span>
+                            @endif
+                        </div>
+                        @endif
+                    </div>
+                    {{-- Colonna 4: azioni rapide --}}
+                    <div class="col-md-4 text-end">
+                        <div class="d-flex flex-wrap gap-1 justify-content-end">
+                            <a href="{{ route('shipments.show', $s) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye me-1"></i>Dettaglio
+                            </a>
+                            <a href="{{ route('shipments.edit', $s) }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-pencil me-1"></i>Modifica
+                            </a>
+                            <a href="{{ route('payments.create') }}?shipment_id={{ $s->id }}" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-cash me-1"></i>+ Pagamento
+                            </a>
+                            <a href="{{ route('communications.create') }}?shipment_id={{ $s->id }}" class="btn btn-sm btn-outline-info">
+                                <i class="bi bi-chat-dots me-1"></i>+ Follow-up
+                            </a>
+                            <a href="{{ route('claims.create') }}?shipment_id={{ $s->id }}" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-exclamation-triangle me-1"></i>+ Reclamo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+        @empty
+        <div class="text-center text-muted py-4">
+            <i class="bi bi-box-seam display-6 d-block mb-2"></i>
+            Nessuna spedizione ancora.
+            <div class="mt-2">
+                <a href="{{ route('shipments.create') }}?contract_id={{ $contract->id }}" class="btn btn-sm btn-success">
+                    <i class="bi bi-plus-circle me-1"></i>Crea prima spedizione
+                </a>
+            </div>
+        </div>
+        @endforelse
     </div>
 
     <!-- TAB DOCUMENTI -->
