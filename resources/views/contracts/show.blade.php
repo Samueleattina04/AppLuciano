@@ -259,7 +259,7 @@
         </div>
         <div class="table-responsive">
             <table class="table table-supply">
-                <thead><tr><th>Tipo</th><th>Descrizione / Spedizione</th><th class="text-end">Importo Dovuto</th><th class="text-end">Pagato</th><th>Scadenza</th><th>Data Pagamento</th><th>Riferimento</th><th>Stato</th></tr></thead>
+                <thead><tr><th>Tipo</th><th>Descrizione / Spedizione</th><th class="text-end">Importo Dovuto</th><th class="text-end">Pagato</th><th>Scadenza</th><th>Data Pagamento</th><th>Rif. Bancario</th><th>Doc. Contabile</th><th>Stato</th></tr></thead>
                 <tbody>
                     @forelse($contract->payments as $p)
                     <tr class="{{ $p->status === 'overdue' ? 'row-overdue' : '' }}">
@@ -284,6 +284,13 @@
                         <td>{{ $p->due_date?->format('d/m/Y') }}</td>
                         <td>{{ $p->payment_date?->format('d/m/Y') ?? '—' }}</td>
                         <td style="font-size:0.8rem">{{ $p->bank_reference ?? '—' }}</td>
+                        <td style="font-size:0.8rem">
+                            @if($p->doc_ref_number)
+                                <div><span class="badge bg-light text-dark border" style="font-size:0.68rem">{{ \App\Models\Payment::DOC_REF_TYPES[$p->doc_ref_type] ?? '' }}</span></div>
+                                <div class="fw-semibold">{{ $p->doc_ref_number }}</div>
+                            @else —
+                            @endif
+                        </td>
                         <td><span class="badge-status status-{{ $p->status }}">{{ $p->status_label }}</span></td>
                     </tr>
                     @empty

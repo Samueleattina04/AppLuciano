@@ -53,16 +53,7 @@ class PaymentController extends Controller
         $contracts = Contract::with(['supplier', 'shipments' => fn($q) => $q->whereNotIn('status', ['closed'])])
             ->orderBy('contract_number')->get();
 
-        $contractsJson = $contracts->map(fn($c) => [
-            'id'           => $c->id,
-            'supplier_id'  => $c->supplier_id,
-            'supplier_name'=> $c->supplier->name ?? '',
-            'currency'     => $c->currency,
-            'shipments'    => $c->shipments->map(fn($s) => [
-                'id'   => $s->id,
-                'code' => $s->shipment_code . ($s->container_number ? ' — ' . $s->container_number : ''),
-            ])->values(),
-        ])->keyBy('id');
+        $contractsJson = $this->buildContractsJson($contracts);
 
         $selectedContract = $request->filled('contract_id')
             ? $contracts->firstWhere('id', $request->contract_id)
@@ -85,11 +76,12 @@ class PaymentController extends Controller
             'due_date'       => 'required|date',
             'payment_date'   => 'nullable|date',
             'bank_reference' => 'nullable|string|max:255',
+            'doc_ref_type'   => 'nullable|string|max:50',
+            'doc_ref_number' => 'nullable|string|max:255',
             'status'         => 'required|in:pending,due_soon,overdue,paid,partially_paid',
             'notes'          => 'nullable|string',
         ]);
 
-        // Fornitore sempre dal contratto, mai dal form
         $contract = Contract::find($validated['contract_id']);
         $validated['supplier_id'] = $contract->supplier_id;
 
@@ -110,16 +102,7 @@ class PaymentController extends Controller
         $contracts = Contract::with(['supplier', 'shipments' => fn($q) => $q->whereNotIn('status', ['closed'])])
             ->orderBy('contract_number')->get();
 
-        $contractsJson = $contracts->map(fn($c) => [
-            'id'           => $c->id,
-            'supplier_id'  => $c->supplier_id,
-            'supplier_name'=> $c->supplier->name ?? '',
-            'currency'     => $c->currency,
-            'shipments'    => $c->shipments->map(fn($s) => [
-                'id'   => $s->id,
-                'code' => $s->shipment_code . ($s->container_number ? ' — ' . $s->container_number : ''),
-            ])->values(),
-        ])->keyBy('id');
+        $contractsJson = $this->buildContractsJson($contracts);
 
         return view('payments.edit', compact('payment', 'contracts', 'contractsJson'));
     }
@@ -138,6 +121,8 @@ class PaymentController extends Controller
             'due_date'       => 'required|date',
             'payment_date'   => 'nullable|date',
             'bank_reference' => 'nullable|string|max:255',
+            'doc_ref_type'   => 'nullable|string|max:50',
+            'doc_ref_number' => 'nullable|string|max:255',
             'status'         => 'required|in:pending,due_soon,overdue,paid,partially_paid',
             'notes'          => 'nullable|string',
         ]);
@@ -163,6 +148,39 @@ class PaymentController extends Controller
     {
         $payment->delete();
         return redirect()->route('payments.index')->with('success', 'Pagamento eliminato.');
+    }
+
+    private function buildContractsJson($contracts): \Illuminate\Support\Collection
+    {
+        return $contracts->map(fn($c) => [
+            'id'           => $c->id,
+            'supplier_id'  => $c->supplier_id,
+            'supplier_name'=> $c->supplier->name ?? '',
+            'currency'     => $c->currency,
+            'shipments'    => $c->shipments->map(fn($s) => [
+                'id'          => $s->id,
+                'code'        => $s->shipment_code,
+                'container'   => $s->container_number ?? '',
+                'bl'          => $s->bl_number ?? '',
+                'vessel'      => $s->vessel_name ?? '',
+                'voyage'      => $s->voyage_number ?? '',
+                'forwarder'   => $s->forwarder ?? '',
+                'pod'         => $s->port_of_discharge ?? '',
+                'eta'         => $s->eta?->format('d/m/Y') ?? '',
+                'notes'       => $s->notes ?? '',
+                // search blob: tutto insieme per il filtro JS
+                'search'      => strtolower(implode(' ', array_filter([
+                    $s->shipment_code,
+                    $s->container_number,
+                    $s->bl_number,
+                    $s->vessel_name,
+                    $s->voyage_number,
+                    $s->forwarder,
+                    $s->port_of_discharge,
+                    $s->notes,
+                ]))),
+            ])->values(),
+        ])->keyBy('id');
     }
 
     public function markPaid(Request $request, Payment $payment)

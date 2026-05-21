@@ -81,7 +81,8 @@
                         <th class="text-end">Pagato</th>
                         <th>Scadenza</th>
                         <th>Data Pagamento</th>
-                        <th>Riferimento</th>
+                        <th>Rif. Bancario</th>
+                        <th>Doc. Contabile</th>
                         <th class="text-center">Stato</th>
                         <th class="text-end">Azioni</th>
                     </tr>
@@ -132,6 +133,16 @@
                         </td>
                         <td>{{ $p->payment_date?->format('d/m/Y') ?? '—' }}</td>
                         <td style="font-size:0.8rem">{{ $p->bank_reference ?? '—' }}</td>
+                        <td style="font-size:0.8rem">
+                            @if($p->doc_ref_number)
+                                <span class="badge bg-light text-dark border" style="font-size:0.72rem">
+                                    {{ \App\Models\Payment::DOC_REF_TYPES[$p->doc_ref_type] ?? $p->doc_ref_type }}
+                                </span>
+                                <div class="fw-semibold" style="font-size:0.8rem">{{ $p->doc_ref_number }}</div>
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
+                        </td>
                         <td class="text-center">
                             <span class="badge-status status-{{ $p->status }}">{{ $p->status_label }}</span>
                         </td>
@@ -152,7 +163,7 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="11" class="text-center py-4 text-muted">Nessun pagamento trovato.</td></tr>
+                    <tr><td colspan="12" class="text-center py-4 text-muted">Nessun pagamento trovato.</td></tr>
                     @endforelse
                 </tbody>
             </table>

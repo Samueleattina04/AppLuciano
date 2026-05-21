@@ -12,12 +12,12 @@
     <div class="row g-3">
         <div class="col-md-8">
 
-            {{-- TIPO PAGAMENTO --}}
+            {{-- TIPO --}}
             <div class="card mb-3">
                 <div class="card-header">Tipo di Pagamento</div>
                 <div class="card-body">
                     <div class="d-flex gap-3">
-                        <label class="d-flex align-items-center gap-2 border rounded px-4 py-3 flex-grow-1 cursor-pointer payment-type-card {{ old('payment_type','shipment_payment') === 'shipment_payment' ? 'border-primary bg-primary bg-opacity-10' : '' }}"
+                        <label class="d-flex align-items-center gap-2 border rounded px-4 py-3 flex-grow-1 payment-type-card {{ old('payment_type','shipment_payment') === 'shipment_payment' ? 'border-primary bg-primary bg-opacity-10' : '' }}"
                             style="cursor:pointer" for="type_shipment">
                             <input type="radio" id="type_shipment" name="payment_type" value="shipment_payment"
                                 {{ old('payment_type','shipment_payment') === 'shipment_payment' ? 'checked' : '' }}>
@@ -26,7 +26,7 @@
                                 <div class="text-muted" style="font-size:0.8rem">Collegato a una specifica spedizione (saldo, BL, ecc.)</div>
                             </div>
                         </label>
-                        <label class="d-flex align-items-center gap-2 border rounded px-4 py-3 flex-grow-1 cursor-pointer payment-type-card {{ old('payment_type') === 'advance' ? 'border-info bg-info bg-opacity-10' : '' }}"
+                        <label class="d-flex align-items-center gap-2 border rounded px-4 py-3 flex-grow-1 payment-type-card {{ old('payment_type') === 'advance' ? 'border-info bg-info bg-opacity-10' : '' }}"
                             style="cursor:pointer" for="type_advance">
                             <input type="radio" id="type_advance" name="payment_type" value="advance"
                                 {{ old('payment_type') === 'advance' ? 'checked' : '' }}>
@@ -39,7 +39,7 @@
                 </div>
             </div>
 
-            {{-- CONTRATTO + FORNITORE (readonly) --}}
+            {{-- CONTRATTO + FORNITORE + SPEDIZIONE --}}
             <div class="card mb-3">
                 <div class="card-header">Contratto &amp; Fornitore</div>
                 <div class="card-body">
@@ -64,13 +64,62 @@
                             </div>
                         </div>
 
-                        {{-- SPEDIZIONE (solo per type=shipment_payment) --}}
+                        {{-- SPEDIZIONE con autocomplete --}}
                         <div class="col-12" id="shipment_row" style="{{ old('payment_type','shipment_payment') === 'advance' ? 'display:none' : '' }}">
                             <label class="form-label fw-semibold">Spedizione</label>
-                            <select id="shipment_select" name="shipment_id" class="form-select @error('shipment_id') is-invalid @enderror">
-                                <option value="">Nessuna / Seleziona dopo il contratto</option>
+                            <input type="hidden" id="shipment_id" name="shipment_id" value="{{ old('shipment_id') }}">
+
+                            {{-- Campo di ricerca visibile --}}
+                            <div class="position-relative">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" id="shipment_search" class="form-control"
+                                        placeholder="Cerca per codice, container, BL, nave, spedizioniere..."
+                                        autocomplete="off">
+                                    <button type="button" id="shipment_clear" class="btn btn-outline-secondary" style="display:none" title="Rimuovi">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+                                {{-- Dropdown risultati --}}
+                                <div id="shipment_dropdown" class="position-absolute w-100 border rounded bg-white shadow-sm"
+                                    style="display:none;z-index:1000;max-height:280px;overflow-y:auto;top:100%;margin-top:2px">
+                                </div>
+                            </div>
+                            {{-- Riepilogo spedizione selezionata --}}
+                            <div id="shipment_selected_info" class="mt-2" style="display:none">
+                                <div class="alert alert-success py-2 px-3 mb-0 d-flex align-items-center gap-2" style="font-size:0.85rem">
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    <span id="shipment_selected_text"></span>
+                                </div>
+                            </div>
+                            <div class="form-text">
+                                Seleziona prima il contratto per filtrare. Puoi cercare per numero container, BL, nave o codice spedizione.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- RIFERIMENTO DOCUMENTO --}}
+            <div class="card mb-3">
+                <div class="card-header"><i class="bi bi-file-earmark-text me-1"></i>Riferimento Documento Contabile</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Tipo Documento</label>
+                            <select name="doc_ref_type" class="form-select">
+                                <option value="">— Nessuno —</option>
+                                @foreach(\App\Models\Payment::DOC_REF_TYPES as $k => $v)
+                                    <option value="{{ $k }}" {{ old('doc_ref_type') == $k ? 'selected' : '' }}>{{ $v }}</option>
+                                @endforeach
                             </select>
-                            <div class="form-text">Seleziona prima il contratto per filtrare le spedizioni.</div>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Numero / Riferimento Documento</label>
+                            <input type="text" name="doc_ref_number" class="form-control"
+                                value="{{ old('doc_ref_number') }}"
+                                placeholder="es. FAT-2024-0123 / PRO-456 / BL ABCD123456">
+                            <div class="form-text">Inserire il numero del documento che si sta pagando (fattura, proforma, BL…). Usato per riconciliazione contabile.</div>
                         </div>
                     </div>
                 </div>
@@ -78,7 +127,7 @@
 
             {{-- IMPORTI --}}
             <div class="card mb-3">
-                <div class="card-header">Importi &amp; Date</div>
+                <div class="card-header">Importi, Date &amp; Riferimenti Bancari</div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-3">
@@ -115,8 +164,9 @@
                             <input type="date" name="payment_date" class="form-control" value="{{ old('payment_date') }}">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Riferimento Bancario</label>
-                            <input type="text" name="bank_reference" class="form-control" value="{{ old('bank_reference') }}">
+                            <label class="form-label fw-semibold">Riferimento Bancario / SWIFT</label>
+                            <input type="text" name="bank_reference" class="form-control" value="{{ old('bank_reference') }}"
+                                placeholder="es. TRF-20240301-001">
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold">Note</label>
@@ -138,6 +188,18 @@
                     </p>
                 </div>
             </div>
+            <div class="card mb-3">
+                <div class="card-body" style="background:#f0fdf4;border-radius:8px">
+                    <div class="fw-semibold mb-1" style="color:#166534"><i class="bi bi-file-earmark-check me-1"></i>Riferimento documento</div>
+                    <p class="text-muted mb-0" style="font-size:0.82rem">
+                        Il riferimento documento permette di:<br>
+                        • Riconciliare i pagamenti con le fatture<br>
+                        • Ripartire il pagamento tra spedizioni<br>
+                        • Chiudere le partite contabili aperte<br>
+                        • Verificare la situazione contabile corrente
+                    </p>
+                </div>
+            </div>
             <div class="card">
                 <div class="card-body">
                     <button type="submit" class="btn btn-primary w-100 mb-2">
@@ -154,55 +216,126 @@
 <script>
 const CONTRACTS = @json($contractsJson);
 
-const contractSel  = document.getElementById('contract_select');
-const supplierDisp = document.getElementById('supplier_display');
-const shipmentSel  = document.getElementById('shipment_select');
-const currencySel  = document.getElementById('currency_select');
-const shipmentRow  = document.getElementById('shipment_row');
-const adviceCard   = document.getElementById('advance_info_card');
+const contractSel    = document.getElementById('contract_select');
+const supplierDisp   = document.getElementById('supplier_display');
+const currencySel    = document.getElementById('currency_select');
+const shipmentRow    = document.getElementById('shipment_row');
+const adviceCard     = document.getElementById('advance_info_card');
+const shipmentSearch = document.getElementById('shipment_search');
+const shipmentIdInp  = document.getElementById('shipment_id');
+const shipmentDrop   = document.getElementById('shipment_dropdown');
+const shipmentClear  = document.getElementById('shipment_clear');
+const shipmentSelInfo= document.getElementById('shipment_selected_info');
+const shipmentSelTxt = document.getElementById('shipment_selected_text');
 
-function populateShipments(contractId, selectedShipmentId) {
-    const c = CONTRACTS[contractId];
-    shipmentSel.innerHTML = '<option value="">— Nessuna spedizione —</option>';
-    if (c && c.shipments.length) {
-        c.shipments.forEach(s => {
-            const opt = document.createElement('option');
-            opt.value = s.id;
-            opt.textContent = s.code;
-            if (selectedShipmentId && s.id == selectedShipmentId) opt.selected = true;
-            shipmentSel.appendChild(opt);
-        });
-    }
+let currentShipments = [];
+
+// ─── Autocomplete spedizione ────────────────────────────────────────────────
+
+function renderShipmentItem(s) {
+    const div = document.createElement('div');
+    div.className = 'px-3 py-2 border-bottom shipment-option';
+    div.style.cssText = 'cursor:pointer;font-size:0.875rem';
+    div.dataset.id = s.id;
+
+    const details = [s.container, s.bl, s.vessel, s.eta ? 'ETA '+s.eta : ''].filter(Boolean).join(' · ');
+    div.innerHTML = `
+        <div class="fw-semibold">${s.code}${s.container ? ' <code style="font-size:.8em">'+s.container+'</code>' : ''}</div>
+        ${details ? `<div class="text-muted" style="font-size:0.78rem">${details}</div>` : ''}
+        ${s.forwarder ? `<div class="text-muted" style="font-size:0.75rem"><i class="bi bi-truck me-1"></i>${s.forwarder}</div>` : ''}
+    `;
+    div.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // prevent blur from firing first
+        selectShipment(s);
+    });
+    div.addEventListener('mouseenter', () => div.style.background = '#f1f5f9');
+    div.addEventListener('mouseleave', () => div.style.background = '');
+    return div;
 }
+
+function showDropdown(items) {
+    shipmentDrop.innerHTML = '';
+    if (!items.length) {
+        shipmentDrop.innerHTML = '<div class="px-3 py-2 text-muted" style="font-size:0.85rem">Nessuna spedizione trovata.</div>';
+    } else {
+        items.forEach(s => shipmentDrop.appendChild(renderShipmentItem(s)));
+    }
+    shipmentDrop.style.display = 'block';
+}
+
+function hideDropdown() {
+    shipmentDrop.style.display = 'none';
+}
+
+function selectShipment(s) {
+    shipmentIdInp.value = s.id;
+    shipmentSearch.value = '';
+    hideDropdown();
+
+    const summary = [s.code, s.container ? 'Container: '+s.container : '', s.bl ? 'BL: '+s.bl : ''].filter(Boolean).join(' · ');
+    shipmentSelTxt.textContent = summary;
+    shipmentSelInfo.style.display = 'block';
+    shipmentClear.style.display = 'inline-block';
+}
+
+function clearShipment() {
+    shipmentIdInp.value = '';
+    shipmentSearch.value = '';
+    shipmentSelInfo.style.display = 'none';
+    shipmentClear.style.display = 'none';
+    hideDropdown();
+}
+
+shipmentSearch.addEventListener('input', function () {
+    const q = this.value.trim().toLowerCase();
+    if (!q) { hideDropdown(); return; }
+    const pool = currentShipments.length ? currentShipments : Object.values(CONTRACTS).flatMap(c => c.shipments);
+    const results = pool.filter(s => s.search.includes(q));
+    showDropdown(results.slice(0, 30));
+});
+
+shipmentSearch.addEventListener('focus', function () {
+    if (this.value.trim()) this.dispatchEvent(new Event('input'));
+});
+
+shipmentSearch.addEventListener('blur', function () {
+    setTimeout(hideDropdown, 150);
+});
+
+shipmentClear.addEventListener('click', clearShipment);
+
+// ─── Contratto change ────────────────────────────────────────────────────────
 
 function onContractChange() {
     const c = CONTRACTS[contractSel.value];
     if (c) {
         supplierDisp.textContent = c.supplier_name;
         supplierDisp.classList.remove('text-muted');
-        // Auto-select currency from contract
         [...currencySel.options].forEach(o => { o.selected = o.value === c.currency; });
-        populateShipments(contractSel.value, null);
+        currentShipments = c.shipments;
+        if (shipmentSearch.value) shipmentSearch.dispatchEvent(new Event('input'));
     } else {
         supplierDisp.textContent = 'Auto-compilato dal contratto';
         supplierDisp.classList.add('text-muted');
-        shipmentSel.innerHTML = '<option value="">Seleziona prima il contratto</option>';
+        currentShipments = [];
     }
+    // Reset shipment if contract changed
+    clearShipment();
 }
 
 contractSel.addEventListener('change', onContractChange);
 
-// Payment type toggle
+// ─── Tipo pagamento toggle ────────────────────────────────────────────────────
+
 document.querySelectorAll('input[name="payment_type"]').forEach(radio => {
     radio.addEventListener('change', function () {
-        const isAdvance = this.value === 'advance';
-        shipmentRow.style.display  = isAdvance ? 'none' : '';
-        adviceCard.style.display   = isAdvance ? '' : 'none';
-        // Style cards
+        const isAdv = this.value === 'advance';
+        shipmentRow.style.display = isAdv ? 'none' : '';
+        adviceCard.style.display  = isAdv ? '' : 'none';
         document.querySelectorAll('.payment-type-card').forEach(c => {
             c.classList.remove('border-primary','bg-primary','bg-opacity-10','border-info','bg-info');
         });
-        if (isAdvance) {
+        if (isAdv) {
             document.querySelector('label[for="type_advance"]').classList.add('border-info','bg-info','bg-opacity-10');
         } else {
             document.querySelector('label[for="type_shipment"]').classList.add('border-primary','bg-primary','bg-opacity-10');
@@ -210,10 +343,13 @@ document.querySelectorAll('input[name="payment_type"]').forEach(radio => {
     });
 });
 
-// Init on load (in case of old() re-population)
+// ─── Init ─────────────────────────────────────────────────────────────────────
 if (contractSel.value) onContractChange();
+
 @if(old('shipment_id'))
-populateShipments(contractSel.value, {{ old('shipment_id') }});
+// Re-populate from old() after validation error
+const oldShip = Object.values(CONTRACTS).flatMap(c=>c.shipments).find(s=>s.id=={{old('shipment_id')}});
+if (oldShip) selectShipment(oldShip);
 @endif
 </script>
 @endpush

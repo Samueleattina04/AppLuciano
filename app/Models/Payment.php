@@ -10,6 +10,16 @@ class Payment extends Model
 {
     use HasFactory, LogsActivity;
 
+    const DOC_REF_TYPES = [
+        'fattura'      => 'Fattura',
+        'proforma'     => 'Proforma',
+        'nota_debito'  => 'Nota di Debito',
+        'bl'           => 'Bill of Lading',
+        'lc'           => 'Lettera di Credito',
+        'bonifico'     => 'Ordine Bonifico',
+        'altro'        => 'Altro',
+    ];
+
     const TYPE_LABELS = [
         'advance'          => 'Acconto',
         'shipment_payment' => 'Pagamento Spedizione',
@@ -40,6 +50,8 @@ class Payment extends Model
         'due_date',
         'payment_date',
         'bank_reference',
+        'doc_ref_type',
+        'doc_ref_number',
         'status',
         'notes',
         'created_by',
